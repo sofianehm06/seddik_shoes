@@ -95,7 +95,7 @@ legend { font-weight: 600; font-size: .92rem; margin-bottom: .5rem; padding: 0; 
 .tile span { display: block; padding: .7rem; font-weight: 700; text-align: center; }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .section-head h1, .section-head h2 { margin: 0; }
-.section-head a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.section-head a:not(.btn) { color: var(--accent); font-weight: 600; text-decoration: none; }
 .chips { display: flex; flex-wrap: wrap; gap: .6rem; }
 .chip { padding: .5rem 1rem; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); text-decoration: none; font-weight: 500; }
 .chip:hover { border-color: var(--accent); color: var(--accent); }

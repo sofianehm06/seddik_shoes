@@ -2,29 +2,45 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1c1917">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="<%= config.shop.name %> Admin">
   <title><%= title %> | Admin <%= config.shop.name %></title>
   <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/icon-192.png">
+  <link rel="manifest" href="/admin.webmanifest">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/admin.css">
 </head>
-<body class="admin">
+<body class="admin<%= csrf ? ' has-tabbar' : '' %>">
   <% if (csrf) { %>
+  <% const is = (p) => p === '/admin' ? path === '/admin' : path.startsWith(p); %>
+  <% const badge = (n) => n ? `<span class="nav-badge">${Number(n)}</span>` : ''; %>
   <header class="admin-header">
     <a href="/admin" class="logo logo-light"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Admin</span></a>
-    <nav>
-      <a href="/admin" class="<%= path === '/admin' ? 'active' : '' %>">Tableau de bord</a>
-      <a href="/admin/commandes" class="<%= path.startsWith('/admin/commandes') ? 'active' : '' %>">Commandes</a>
-      <a href="/admin/a-preparer" class="<%= path.startsWith('/admin/a-preparer') ? 'active' : '' %>">À préparer</a>
-      <a href="/admin/produits" class="<%= path.startsWith('/admin/produits') ? 'active' : '' %>">Produits</a>
-      <a href="/admin/fournisseurs" class="<%= path.startsWith('/admin/fournisseurs') ? 'active' : '' %>">Fournisseurs</a>
-      <a href="/admin/comptes" class="<%= path.startsWith('/admin/comptes') ? 'active' : '' %>">Comptes</a>
-      <a href="/admin/boutiques" class="<%= path.startsWith('/admin/boutiques') ? 'active' : '' %>">Points de retrait</a>
-      <a href="/admin/mot-de-passe" class="<%= path.startsWith('/admin/mot-de-passe') ? 'active' : '' %>">Mot de passe</a>
+    <button class="admin-menu-toggle" type="button" aria-label="Menu" aria-expanded="false" data-admin-menu-toggle>☰</button>
+    <nav data-admin-menu>
+      <a href="/admin" class="<%= is('/admin') ? 'active' : '' %>">Tableau de bord</a>
+      <a href="/admin/commandes" class="<%= is('/admin/commandes') ? 'active' : '' %>">Commandes<%- badge(badges.nouvelle) %></a>
+      <a href="/admin/a-preparer" class="<%= is('/admin/a-preparer') ? 'active' : '' %>">À préparer<%- badge(badges.confirmee) %></a>
+      <a href="/admin/produits" class="<%= is('/admin/produits') ? 'active' : '' %>">Produits</a>
+      <a href="/admin/fournisseurs" class="<%= is('/admin/fournisseurs') ? 'active' : '' %>">Fournisseurs</a>
+      <a href="/admin/comptes" class="<%= is('/admin/comptes') ? 'active' : '' %>">Comptes</a>
+      <a href="/admin/boutiques" class="<%= is('/admin/boutiques') ? 'active' : '' %>">Points de retrait</a>
+      <a href="/admin/mot-de-passe" class="<%= is('/admin/mot-de-passe') ? 'active' : '' %>">Mot de passe</a>
       <a href="/" target="_blank">Voir le site ↗</a>
       <form method="post" action="/admin/deconnexion"><input type="hidden" name="_csrf" value="<%= csrf %>"><button>Déconnexion</button></form>
     </nav>
   </header>
+  <nav class="tabbar" aria-label="Navigation rapide">
+    <a href="/admin" class="<%= is('/admin') ? 'active' : '' %>"><span>🏠</span>Accueil</a>
+    <a href="/admin/commandes" class="<%= is('/admin/commandes') ? 'active' : '' %>"><span>📦<%- badge(badges.nouvelle) %></span>Commandes</a>
+    <a href="/admin/a-preparer" class="<%= is('/admin/a-preparer') ? 'active' : '' %>"><span>📋<%- badge(badges.confirmee) %></span>À préparer</a>
+    <a href="/admin/produits" class="<%= is('/admin/produits') ? 'active' : '' %>"><span>👟</span>Produits</a>
+    <a href="/admin/comptes" class="<%= is('/admin/comptes') ? 'active' : '' %>"><span>💰</span>Comptes</a>
+  </nav>
   <% } %>
   <main class="admin-main">

@@ -20,18 +20,18 @@
   <p class="muted small">Commandes <strong>livrées</strong> pas encore réglées. Quand tu as payé (ou été payé), clique sur « Marquer comme réglé ».</p>
   <% if (!accounts.suppliers.length) { %><p class="muted">Tout est à jour 👍</p><% } else { %>
   <div class="table-wrap">
-  <table class="table">
+  <table class="table table-cards">
     <thead><tr><th>Fournisseur</th><th class="num">Paires</th><th class="num">Ventes</th><th class="num">Encaissé par toi</th><th class="num">Encaissé par lui</th><th class="num">Ta commission</th><th>Solde</th><th></th></tr></thead>
     <tbody>
       <% accounts.suppliers.forEach(a => { %>
         <tr>
-          <td><strong><%= a.name %></strong></td>
-          <td class="num"><%= a.pairs %></td>
-          <td class="num"><%= formatPrice(a.sales) %></td>
-          <td class="num"><%= formatPrice(a.collectedByMe) %></td>
-          <td class="num"><%= formatPrice(a.collectedBySupplier) %></td>
-          <td class="num"><%= formatPrice(a.commission) %></td>
-          <td>
+          <td class="card-title"><strong><%= a.name %></strong></td>
+          <td data-label="Paires" class="num"><%= a.pairs %></td>
+          <td data-label="Ventes" class="num"><%= formatPrice(a.sales) %></td>
+          <td data-label="Encaissé par toi" class="num"><%= formatPrice(a.collectedByMe) %></td>
+          <td data-label="Encaissé par lui" class="num"><%= formatPrice(a.collectedBySupplier) %></td>
+          <td data-label="Ta commission" class="num"><%= formatPrice(a.commission) %></td>
+          <td data-label="Solde">
             <% if (a.balance > 0) { %><span class="owe">Tu lui dois <strong><%= formatPrice(a.balance) %></strong></span>
             <% } else if (a.balance < 0) { %><span class="owed">Il te doit <strong><%= formatPrice(-a.balance) %></strong></span>
             <% } else { %>Rien<% } %>
@@ -52,12 +52,12 @@
 <% if (settlements.length) { %>
 <section class="panel">
   <h2 class="h3">Historique des règlements</h2>
-  <table class="table">
+  <table class="table table-cards">
     <thead><tr><th>Date</th><th>Fournisseur</th><th class="num">Paires</th><th>Montant</th></tr></thead>
     <tbody>
       <% settlements.forEach(s => { %>
-        <tr><td><%= s.created_at.slice(0, 16) %></td><td><%= s.supplier_name %></td><td class="num"><%= s.items %></td>
-          <td><%= s.amount > 0 ? 'Tu as payé ' + formatPrice(s.amount) : s.amount < 0 ? 'Il t\'a payé ' + formatPrice(-s.amount) : '—' %></td></tr>
+        <tr><td data-label="Date"><%= s.created_at.slice(0, 16) %></td><td data-label="Fournisseur"><%= s.supplier_name %></td><td data-label="Paires" class="num"><%= s.items %></td>
+          <td data-label="Montant"><%= s.amount > 0 ? 'Tu as payé ' + formatPrice(s.amount) : s.amount < 0 ? 'Il t\'a payé ' + formatPrice(-s.amount) : '—' %></td></tr>
       <% }) %>
     </tbody>
   </table>

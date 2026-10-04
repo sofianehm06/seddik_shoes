@@ -1,17 +1,17 @@
 <div class="table-wrap">
-<table class="table">
+<table class="table table-cards">
   <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Téléphone</th><th>Livraison</th><th class="num">Total</th><th>Statut</th></tr></thead>
   <tbody>
     <% if (!orders.length) { %><tr><td colspan="7" class="muted">Aucune commande.</td></tr><% } %>
     <% orders.forEach(o => { %>
       <tr class="clickable" data-href="/admin/commandes/<%= o.id %>">
-        <td><a href="/admin/commandes/<%= o.id %>"><%= o.ref %></a></td>
-        <td><%= o.created_at.slice(0, 16) %></td>
-        <td><%= o.customer_name %></td>
-        <td><a href="tel:<%= o.phone %>"><%= o.phone %></a></td>
-        <td><%= { domicile: 'Domicile', stopdesk: 'Stop desk', boutique: 'Boutique' }[o.delivery_mode] %> · <%= o.wilaya %></td>
-        <td class="num"><%= formatPrice(o.total) %></td>
-        <td><%- include('_status', { status: o.status }) %></td>
+        <td class="card-title"><a href="/admin/commandes/<%= o.id %>"><%= o.ref %></a> <span class="only-mobile"><%- include('_status', { status: o.status }) %></span></td>
+        <td data-label="Date"><%= o.created_at.slice(0, 16) %></td>
+        <td data-label="Client"><%= o.customer_name %></td>
+        <td data-label="Téléphone"><a href="tel:<%= o.phone %>"><%= o.phone %></a></td>
+        <td data-label="Livraison"><%= { domicile: 'Domicile', stopdesk: 'Stop desk', boutique: 'Retrait' }[o.delivery_mode] %> · <%= o.wilaya %></td>
+        <td data-label="Total" class="num"><strong><%= formatPrice(o.total) %></strong></td>
+        <td class="only-desktop"><%- include('_status', { status: o.status }) %></td>
       </tr>
     <% }) %>
   </tbody>

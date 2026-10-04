@@ -41,3 +41,56 @@ document.addEventListener('submit', function (e) {
   if (!f) return;
   f.elements.delivered_by.addEventListener('change', function () { f.elements.collected_by.value = f.elements.delivered_by.value; });
 })();
+
+// Menu de l'admin sur téléphone.
+(function () {
+  var toggle = document.querySelector('[data-admin-menu-toggle]');
+  if (!toggle) return;
+  toggle.addEventListener('click', function () {
+    var open = document.querySelector('[data-admin-menu]').classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open);
+    toggle.textContent = open ? '✕' : '☰';
+  });
+})();
+
+// Photos : redimensionnées dans le navigateur avant l'envoi (photos de téléphone souvent > 5 Mo).
+(function () {
+  var input = document.querySelector('input[type=file][name=images]');
+  if (!input || typeof DataTransfer === 'undefined') return;
+  var MAX = 1600;
+  var hint = document.createElement('small');
+  input.insertAdjacentElement('afterend', hint);
+  function resize(file) {
+    return new Promise(function (resolve) {
+      if (!/^image\//.test(file.type)) return resolve(null);
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        if (scale === 1 && file.size < 1.5 * 1024 * 1024 && /jpeg|png|webp/.test(file.type)) { URL.revokeObjectURL(url); return resolve(file); }
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (blob) {
+          resolve(blob ? new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : file);
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+  input.addEventListener('change', function () {
+    var files = Array.prototype.slice.call(input.files);
+    if (!files.length) return;
+    hint.textContent = 'Préparation des photos…';
+    Promise.all(files.map(resize)).then(function (out) {
+      var dt = new DataTransfer();
+      var skipped = 0;
+      out.forEach(function (f) { if (f) dt.items.add(f); else skipped++; });
+      input.files = dt.files;
+      hint.textContent = dt.files.length + ' photo(s) prête(s)' + (skipped ? ' — ' + skipped + ' fichier(s) ignoré(s) (format non reconnu)' : '') + '.';
+    });
+  });
+})();

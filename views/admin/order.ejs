@@ -64,25 +64,25 @@
 
 <section class="panel">
   <div class="table-wrap">
-  <table class="table">
+  <table class="table table-cards">
     <thead><tr><th>Article</th><th>Fournisseur</th><th>Pointure</th><th>Qté</th><th class="num">Prix</th><th class="num">Ta commission</th><th class="num">Part fournisseur</th></tr></thead>
     <tbody>
       <% order.items.forEach(it => { %>
         <tr>
-          <td><%= it.name %></td>
-          <td><%= it.supplier_name || '—' %></td>
-          <td><%= it.size %></td>
-          <td><%= it.qty %></td>
-          <td class="num"><%= formatPrice(it.price * it.qty) %></td>
-          <td class="num"><%= formatPrice(it.commission * it.qty) %></td>
-          <td class="num"><%= it.supplier_id ? formatPrice((it.price - it.commission) * it.qty) : '—' %></td>
+          <td class="card-title"><%= it.name %></td>
+          <td data-label="Fournisseur"><%= it.supplier_name || '—' %></td>
+          <td data-label="Pointure"><strong><%= it.size %></strong></td>
+          <td data-label="Qté"><%= it.qty %></td>
+          <td data-label="Prix" class="num"><%= formatPrice(it.price * it.qty) %></td>
+          <td data-label="Ta commission" class="num"><%= formatPrice(it.commission * it.qty) %></td>
+          <td data-label="Part fournisseur" class="num"><%= it.supplier_id ? formatPrice((it.price - it.commission) * it.qty) : '—' %></td>
         </tr>
       <% }) %>
     </tbody>
     <tfoot>
-      <tr><td colspan="4">Sous-total</td><td class="num"><%= formatPrice(order.subtotal) %></td><td class="num"><%= formatPrice(order.items.reduce((s, i) => s + i.commission * i.qty, 0)) %></td><td></td></tr>
-      <tr><td colspan="4">Livraison</td><td class="num"><%= order.delivery_fee ? formatPrice(order.delivery_fee) : 'Gratuite' %></td><td colspan="2"></td></tr>
-      <tr class="total"><td colspan="4">Total à encaisser</td><td class="num"><%= formatPrice(order.total) %></td><td colspan="2"></td></tr>
+      <tr><td colspan="4" class="only-desktop">Sous-total</td><td data-label="Sous-total" class="num"><%= formatPrice(order.subtotal) %></td><td data-label="Ta commission" class="num"><%= formatPrice(order.items.reduce((s, i) => s + i.commission * i.qty, 0)) %></td><td></td></tr>
+      <tr><td colspan="4" class="only-desktop">Livraison</td><td data-label="Livraison" class="num"><%= order.delivery_fee ? formatPrice(order.delivery_fee) : 'Gratuite' %></td><td colspan="2"></td></tr>
+      <tr class="total"><td colspan="4" class="only-desktop">Total à encaisser</td><td data-label="Total à encaisser" class="num"><%= formatPrice(order.total) %></td><td colspan="2"></td></tr>
     </tfoot>
   </table>
   </div>

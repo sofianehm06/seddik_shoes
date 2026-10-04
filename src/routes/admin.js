@@ -40,7 +40,11 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir }) {
       },
     }),
     limits: { fileSize: 5 * 1024 * 1024, files: 8 },
-    fileFilter: (req, file, cb) => cb(null, ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)),
+    fileFilter: (req, file, cb) => {
+      const ok = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
+      if (!ok && file.originalname) req.rejectedFiles = (req.rejectedFiles || 0) + 1;
+      cb(null, ok);
+    },
   });
 
   const removeUpload = (file) => {
@@ -101,6 +105,7 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir }) {
   // Tout ce qui suit nécessite d'être connecté.
   router.use((req, res, next) => {
     if (!req.session) return res.redirect('/admin/connexion');
+    res.locals.badges = repo.orderCounts();
     next();
   });
 
@@ -190,6 +195,7 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir }) {
       newImages: (req.files || []).map((f) => f.filename),
     };
     const errors = [];
+    if (req.rejectedFiles) errors.push(`${req.rejectedFiles} fichier(s) ignoré(s) : seules les photos JPG, PNG ou WebP sont acceptées.`);
     if (data.name.length < 2) errors.push('Le nom est obligatoire.');
     if (!isSlug(config.genders, data.gender)) errors.push('Rayon invalide.');
     if (!isSlug(config.categories, data.category)) errors.push('Type invalide.');
@@ -214,8 +220,17 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir }) {
     res.redirect(`/admin/produits/${savedId}?ok=1`);
   }
 
-  router.post('/produits', upload.array('images', 8), checkCsrf, saveProduct);
-  router.post('/produits/:id', upload.array('images', 8), checkCsrf, saveProduct);
+  const uploadImages = (req, res, next) =>
+    upload.array('images', 8)(req, res, (err) => {
+      if (!err) return next();
+      if (!(err instanceof multer.MulterError)) return next(err);
+      for (const f of req.files || []) removeUpload(f.filename);
+      const message = err.code === 'LIMIT_FILE_SIZE' ? 'Une photo dépasse 5 Mo.' : err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE' ? '8 photos maximum à la fois.' : 'Envoi des photos impossible.';
+      res.status(400).render('error', { title: 'Photos refusées', message: `${message} Revenez en arrière et réessayez.` });
+    });
+
+  router.post('/produits', uploadImages, checkCsrf, saveProduct);
+  router.post('/produits/:id', uploadImages, checkCsrf, saveProduct);
 
   router.post('/produits/:id/supprimer', (req, res) => {
     repo.deleteProduct(Number(req.params.id)).forEach(removeUpload);

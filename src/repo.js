@@ -489,6 +489,12 @@ function createRepo(db) {
     };
   }
 
+  // Compteurs affichés dans le menu de l'admin.
+  const orderCounts = () =>
+    db.prepare(
+      `SELECT SUM(status = 'nouvelle') AS nouvelle, SUM(status = 'confirmee') AS confirmee FROM orders`
+    ).get();
+
   function stats() {
     const one = (sql) => db.prepare(sql).get().n;
     return {
@@ -528,6 +534,7 @@ function createRepo(db) {
     listOrders,
     setOrderStatus,
     setOrderHandling,
+    orderCounts,
     toPrepare,
     listSuppliers,
     getSupplier,

@@ -58,3 +58,61 @@ tr.clickable:hover { background: #fafaf9; }
 .owe { color: var(--danger); }
 .owed { color: var(--success); }
 @media (max-width: 800px) { .handling { grid-template-columns: 1fr; } .handling .btn { grid-column: auto; } }
+
+/* --- Téléphone --- */
+.nav-badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: .35rem; border-radius: 9px; background: var(--accent); color: #fff; font-size: .7rem; font-weight: 700; vertical-align: 1px; }
+.admin-menu-toggle { display: none; margin-left: auto; background: none; border: 0; color: #fff; font-size: 1.5rem; cursor: pointer; padding: .1rem .4rem; }
+.tabbar { display: none; }
+.only-mobile { display: none; }
+.two-cols > *, .form-grid > * { min-width: 0; }
+
+@media (max-width: 800px) {
+  .admin-header { position: sticky; top: 0; z-index: 20; gap: .5rem; padding-top: calc(.6rem + env(safe-area-inset-top)); padding-bottom: .6rem; }
+  .admin-menu-toggle { display: block; }
+  .admin-header nav { display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 0; font-size: 1rem; }
+  .admin-header nav.open { display: flex; }
+  .admin-header nav a { padding: .7rem .2rem; border-bottom: 1px solid #292524; display: flex; align-items: center; justify-content: space-between; }
+  .admin-header form { margin: .8rem 0 .2rem; }
+  .admin-header form button { width: 100%; padding: .6rem; }
+
+  .has-tabbar .admin-main { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+  .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -2px 12px rgba(0,0,0,.06); }
+  .tabbar a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .1rem; padding: .45rem 0 .5rem; font-size: .7rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+  .tabbar a span { font-size: 1.3rem; line-height: 1.2; position: relative; }
+  .tabbar a.active { color: var(--accent-dark); }
+  .tabbar .nav-badge { position: absolute; top: -4px; right: -14px; margin: 0; }
+
+  .admin-main { padding-top: 1rem; }
+  .admin-main h1 { font-size: 1.4rem; overflow-wrap: anywhere; }
+  .panel { padding: 1rem; }
+  .kpis { grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .kpi { padding: .8rem; }
+  .kpi strong { font-size: 1.25rem; }
+  .toolbar input, .toolbar select { min-width: 0; flex-basis: 100%; }
+  .toolbar .btn { flex: 1; }
+  .status-form .btn { flex: 1 1 30%; }
+  .send-suppliers .btn { width: 100%; }
+  .btn, input, select, textarea { min-height: 44px; }
+  input, select, textarea { font-size: 16px; } /* évite le zoom automatique sur iPhone */
+
+  .only-mobile { display: initial; }
+  .only-desktop { display: none !important; }
+  .table-wrap { background: transparent; overflow: visible; }
+  .table-cards thead { display: none; }
+  .table-cards, .table-cards tbody, .table-cards tfoot, .table-cards tr { display: block; width: 100%; }
+  .table-cards tr { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: .55rem .8rem; margin-bottom: .6rem; }
+  .panel .table-cards tr { border-color: #eeeceb; }
+  .table-cards td { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .25rem 0; border: 0; text-align: right; }
+  .table-cards td::before { content: attr(data-label); color: var(--muted); font-size: .82rem; text-align: left; font-weight: 500; }
+  .table-cards td:not([data-label])::before { content: none; }
+  .table-cards td:empty { display: none; }
+  .table-cards td.card-title { justify-content: flex-start; text-align: left; font-weight: 700; font-size: 1rem; padding-bottom: .4rem; margin-bottom: .2rem; border-bottom: 1px solid var(--border); }
+  .table-cards td.card-title .only-mobile { margin-left: auto; }
+  .table-cards td.card-title a.only-mobile { margin-left: 0; }
+  .table-cards tfoot tr { background: var(--accent-soft); border-color: #fed7aa; }
+  .table-cards .total td { font-size: 1.05rem; }
+  .table-cards .thumb { width: 48px; height: 48px; }
+  .table-cards form { width: 100%; }
+  .table-cards form .btn { width: 100%; }
+  tr.clickable:hover { background: #fff; }
+}

@@ -2,17 +2,17 @@
 <div class="section-head"><h1>Fournisseurs</h1><a class="btn btn-primary" href="/admin/fournisseurs/nouveau">+ Nouveau fournisseur</a></div>
 <% if (error) { %><p class="alert"><%= error %></p><% } %>
 <div class="table-wrap">
-<table class="table">
+<table class="table table-cards">
   <thead><tr><th>Nom</th><th>Ville</th><th>Téléphone</th><th>Commission par défaut</th><th class="num">Produits</th></tr></thead>
   <tbody>
     <% if (!suppliers.length) { %><tr><td colspan="5" class="muted">Aucun fournisseur pour l'instant.</td></tr><% } %>
     <% suppliers.forEach(s => { %>
       <tr class="clickable" data-href="/admin/fournisseurs/<%= s.id %>">
-        <td><a href="/admin/fournisseurs/<%= s.id %>"><%= s.name %></a></td>
-        <td><%= s.city %></td>
-        <td><%= s.phone %></td>
-        <td><%= s.default_commission_type === 'fixed' ? formatPrice(s.default_commission_value) + ' / paire' : s.default_commission_value + ' %' %></td>
-        <td class="num"><a href="/admin/produits?fournisseur=<%= s.id %>"><%= s.products %></a></td>
+        <td class="card-title"><a href="/admin/fournisseurs/<%= s.id %>"><%= s.name %></a></td>
+        <td data-label="Ville"><%= s.city %></td>
+        <td data-label="Téléphone"><a href="tel:<%= s.phone.replace(/\s/g, '') %>"><%= s.phone %></a></td>
+        <td data-label="Commission"><%= s.default_commission_type === 'fixed' ? formatPrice(s.default_commission_value) + ' / paire' : s.default_commission_value + ' %' %></td>
+        <td data-label="Produits" class="num"><a href="/admin/produits?fournisseur=<%= s.id %>"><%= s.products %></a></td>
       </tr>
     <% }) %>
   </tbody>

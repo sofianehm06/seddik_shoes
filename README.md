@@ -43,6 +43,16 @@ La commission est figée au moment de la commande : la modifier ensuite ne chang
 - Points de retrait (facultatif) : si tu en ajoutes, le client peut choisir le retrait gratuit
 - Changement du mot de passe
 
+## Sur PC et sur téléphone
+
+Tout le site (boutique **et** administration) s'utilise aussi bien sur PC que sur téléphone, à la même adresse.
+Sur téléphone, l'admin a une barre d'onglets en bas (Accueil, Commandes, À préparer, Produits, Comptes),
+les tableaux s'affichent en cartes, et les photos prises avec le téléphone sont réduites automatiquement avant l'envoi.
+
+**Installer l'admin comme une appli** : ouvre `https://ton-site/admin` sur le téléphone, puis
+- Android (Chrome) : menu ⋮ → « Ajouter à l'écran d'accueil » / « Installer l'application »
+- iPhone (Safari) : bouton Partager → « Sur l'écran d'accueil »
+
 ## Lancer le site
 
 Prérequis : **Node.js 22.5 ou plus récent** (la base SQLite est intégrée à Node, rien d'autre à installer).
