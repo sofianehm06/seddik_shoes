@@ -1,6 +1,6 @@
 <%- include('_head') %>
-<p><a href="/admin/boutiques">← Boutiques</a></p>
-<h1><%= store.id ? store.name : 'Nouvelle boutique' %></h1>
+<p><a href="/admin/boutiques">← Points de retrait</a></p>
+<h1><%= store.id ? store.name : 'Nouveau point de retrait' %></h1>
 <% if (errors.length) { %><div class="alert"><% errors.forEach(e => { %><div><%= e %></div><% }) %></div><% } %>
 <form method="post" action="/admin/boutiques<%= store.id ? '/' + store.id : '' %>" class="panel form-grid">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
@@ -13,8 +13,8 @@
   <div class="span-2"><button class="btn btn-primary">Enregistrer</button></div>
 </form>
 <% if (store.id) { %>
-  <form method="post" action="/admin/boutiques/<%= store.id %>/supprimer" class="danger-zone" data-confirm="Supprimer cette boutique ?">
-    <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Supprimer la boutique</button>
+  <form method="post" action="/admin/boutiques/<%= store.id %>/supprimer" class="danger-zone" data-confirm="Supprimer ce point de retrait ?">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Supprimer ce point</button>
   </form>
 <% } %>
 <%- include('_foot') %>

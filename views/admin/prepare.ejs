@@ -1,0 +1,28 @@
+<%- include('_head') %>
+<h1>À préparer</h1>
+<p class="muted">Articles des commandes <strong>confirmées</strong>, regroupés par fournisseur. Envoie-lui la liste, puis passe les commandes en « Expédiée ».</p>
+<% if (!groups.length) { %><div class="panel"><p class="muted">Rien à préparer pour l'instant 👍</p></div><% } %>
+<% groups.forEach(g => { %>
+  <section class="panel">
+    <div class="section-head">
+      <h2 class="h3"><%= g.name %> <small class="muted">(<%= g.items.reduce((n, i) => n + i.qty, 0) %> paire<%= g.items.reduce((n, i) => n + i.qty, 0) > 1 ? 's' : '' %>)</small></h2>
+      <% if (g.whatsapp) { %><a class="btn btn-whatsapp" href="<%= g.whatsapp %>" target="_blank" rel="noopener">Envoyer la liste sur WhatsApp</a><% } %>
+    </div>
+    <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Article</th><th>Pointure</th><th>Qté</th><th>Commande</th><th>Client</th><th>Livraison</th></tr></thead>
+      <tbody>
+        <% g.items.forEach(i => { %>
+          <tr>
+            <td><%= i.name %></td><td><strong><%= i.size %></strong></td><td><%= i.qty %></td>
+            <td><a href="/admin/commandes/<%= i.order_id %>"><%= i.ref %></a></td>
+            <td><%= i.customer_name %> · <%= i.wilaya %></td>
+            <td><%= i.delivered_by === 'moi' ? 'Moi' : 'Fournisseur' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+  </section>
+<% }) %>
+<%- include('_foot') %>

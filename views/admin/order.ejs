@@ -7,24 +7,84 @@
     <p><strong><%= order.customer_name %></strong></p>
     <p>📞 <a href="tel:<%= order.phone %>"><%= order.phone %></a> · <a href="https://wa.me/213<%= order.phone.slice(1) %>" target="_blank" rel="noopener">WhatsApp</a></p>
     <% if (order.delivery_mode === 'boutique') { %>
-      <p>🏬 Retrait en boutique : <strong><%= order.store_name || 'boutique supprimée' %></strong></p>
+      <p>📍 Retrait sur place : <strong><%= order.store_name || 'point supprimé' %></strong></p>
     <% } else { %>
       <p>🚚 <%= order.delivery_mode === 'stopdesk' ? 'Stop desk' : 'À domicile' %> — <%= order.wilaya %><%= order.commune ? ', ' + order.commune : '' %></p>
-      <% if (order.address) { %><p>📍 <%= order.address %></p><% } %>
+      <% if (order.address) { %><p>🏠 <%= order.address %></p><% } %>
     <% } %>
     <% if (order.note) { %><p>📝 <em><%= order.note %></em></p><% } %>
     <p class="muted small">Passée le <%= order.created_at %> (UTC)</p>
   </section>
   <section class="panel">
-    <h2 class="h3">Changer le statut</h2>
+    <h2 class="h3">Statut</h2>
     <form method="post" action="/admin/commandes/<%= order.id %>/statut" class="status-form">
       <input type="hidden" name="_csrf" value="<%= csrf %>">
       <% config.orderStatuses.forEach(s => { %>
-        <button name="status" value="<%= s.slug %>" class="btn <%= order.status === s.slug ? 'btn-primary' : 'btn-ghost' %>" <%= order.status === s.slug ? 'disabled' : '' %>><%= s.label %></button>
+        <button name="status" value="<%= s.slug %>" class="btn btn-sm <%= order.status === s.slug ? 'btn-primary' : 'btn-ghost' %>" <%= order.status === s.slug ? 'disabled' : '' %>><%= s.label %></button>
       <% }) %>
     </form>
-    <p class="muted small">Annuler une commande remet automatiquement les articles en stock.</p>
+    <p class="muted small">1. Appelle le client → <em>Confirmée</em>. 2. Envoie la liste au fournisseur. 3. <em>Expédiée</em> puis <em>Livrée</em> (ou <em>Retournée</em> si le client refuse).
+      Seules les commandes livrées comptent dans tes comptes.</p>
+
+    <h2 class="h3">Livraison & argent</h2>
+    <form method="post" action="/admin/commandes/<%= order.id %>/livraison" class="handling" data-handling>
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label>Livrée par
+        <select name="delivered_by">
+          <option value="moi" <%= order.delivered_by === 'moi' ? 'selected' : '' %>>Moi-même</option>
+          <option value="fournisseur" <%= order.delivered_by === 'fournisseur' ? 'selected' : '' %>>Le fournisseur</option>
+        </select>
+      </label>
+      <label>Argent encaissé par
+        <select name="collected_by">
+          <option value="moi" <%= order.collected_by === 'moi' ? 'selected' : '' %>>Moi</option>
+          <option value="fournisseur" <%= order.collected_by === 'fournisseur' ? 'selected' : '' %>>Le fournisseur</option>
+        </select>
+      </label>
+      <button class="btn btn-ghost">Enregistrer</button>
+    </form>
+    <% if (order.delivered_by === 'moi' && order.delivery_fee) { %><p class="small muted">Frais de livraison pour toi : <strong><%= formatPrice(order.delivery_fee) %></strong></p><% } %>
   </section>
 </div>
-<section class="panel"><%- include('../partials/order-summary', { order }) %></section>
+
+<% if (suppliers.length) { %>
+<section class="panel">
+  <h2 class="h3">Envoyer au fournisseur</h2>
+  <div class="send-suppliers">
+    <% suppliers.forEach(s => { %>
+      <% if (s.whatsapp) { %>
+        <a class="btn btn-whatsapp" href="<%= s.whatsapp %>" target="_blank" rel="noopener">WhatsApp → <%= s.name %></a>
+      <% } else { %>
+        <span class="muted"><%= s.name %> : pas de numéro enregistré</span>
+      <% } %>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<section class="panel">
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Article</th><th>Fournisseur</th><th>Pointure</th><th>Qté</th><th class="num">Prix</th><th class="num">Ta commission</th><th class="num">Part fournisseur</th></tr></thead>
+    <tbody>
+      <% order.items.forEach(it => { %>
+        <tr>
+          <td><%= it.name %></td>
+          <td><%= it.supplier_name || '—' %></td>
+          <td><%= it.size %></td>
+          <td><%= it.qty %></td>
+          <td class="num"><%= formatPrice(it.price * it.qty) %></td>
+          <td class="num"><%= formatPrice(it.commission * it.qty) %></td>
+          <td class="num"><%= it.supplier_id ? formatPrice((it.price - it.commission) * it.qty) : '—' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="4">Sous-total</td><td class="num"><%= formatPrice(order.subtotal) %></td><td class="num"><%= formatPrice(order.items.reduce((s, i) => s + i.commission * i.qty, 0)) %></td><td></td></tr>
+      <tr><td colspan="4">Livraison</td><td class="num"><%= order.delivery_fee ? formatPrice(order.delivery_fee) : 'Gratuite' %></td><td colspan="2"></td></tr>
+      <tr class="total"><td colspan="4">Total à encaisser</td><td class="num"><%= formatPrice(order.total) %></td><td colspan="2"></td></tr>
+    </tfoot>
+  </table>
+  </div>
+</section>
 <%- include('_foot') %>

@@ -10,6 +10,11 @@ const clean = (value, max = 200) => String(value ?? '').trim().slice(0, max);
 module.exports = function shopRoutes({ repo }) {
   const router = express.Router();
 
+  router.use((req, res, next) => {
+    res.locals.hasStores = repo.listStores().length > 0;
+    next();
+  });
+
   router.get('/', (req, res) => {
     res.render('home', {
       featured: repo.listProducts({ featured: true, perPage: 8 }).products,
@@ -69,11 +74,12 @@ module.exports = function shopRoutes({ repo }) {
       if (!product || !product.active) continue;
       const size = product.sizes.find((s) => s.size === String(item.size));
       if (!size) continue;
+      const max = size.stock === null ? 10 : size.stock;
       out.push({
         productId: product.id,
         size: size.size,
-        qty: Math.max(1, Math.min(Number(item.qty) || 1, size.stock || 1)),
-        stock: size.stock,
+        qty: Math.max(1, Math.min(Number(item.qty) || 1, max || 1)),
+        stock: max,
         name: product.name,
         price: product.price,
         image: req.app.locals.imageUrl(product),
@@ -141,7 +147,7 @@ module.exports = function shopRoutes({ repo }) {
     res.render('tracking', { title: 'Suivre ma commande', order, searched });
   });
 
-  router.get('/boutiques', (req, res) => res.render('stores', { title: 'Nos boutiques', stores: repo.listStores() }));
+  router.get('/boutiques', (req, res) => res.render('stores', { title: 'Points de retrait', stores: repo.listStores() }));
 
   router.get('/placeholder.svg', (req, res) => {
     res.type('image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(placeholderSvg(clean(req.query.c, 30), clean(req.query.color, 30)));

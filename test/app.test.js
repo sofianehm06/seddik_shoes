@@ -27,14 +27,27 @@ after(() => {
 const postJson = (url, body) =>
   fetch(base + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
-function productWithStock() {
-  const { products } = app.locals.repo.listProducts({ perPage: 100 });
-  for (const p of products) {
-    const size = p.sizes.find((s) => s.stock >= 2);
-    if (size) return { product: p, size };
-  }
-  throw new Error('aucun produit en stock');
+// Crée un produit de test avec une pointure à quantité connue.
+let counter = 0;
+function productWithStock({ price = 5000, stock = 5, supplierId = null, type = 'percent', value = 10 } = {}) {
+  const repo = app.locals.repo;
+  const id = repo.saveProduct({
+    name: `Produit test ${++counter}`,
+    gender: 'homme',
+    category: 'baskets',
+    price,
+    active: true,
+    supplier_id: supplierId,
+    commission_type: type,
+    commission_value: value,
+    sizes: [{ size: '42', stock }, { size: '43', stock: null }],
+  });
+  const product = repo.getProduct(id);
+  return { product, size: product.sizes[0] };
 }
+
+const order = (items, extra = {}) =>
+  postJson('/api/commande', { name: 'Client Test', phone: '0555123456', deliveryMode: 'stopdesk', wilaya: 'Oran', items, ...extra });
 
 async function login() {
   const res = await fetch(base + '/admin/connexion', {
@@ -112,7 +125,9 @@ test('les champs obligatoires sont validés', async () => {
 
 test('retrait en boutique : livraison gratuite', async () => {
   const { product, size } = productWithStock();
-  const store = app.locals.repo.listStores()[0];
+  const storeId = app.locals.repo.saveStore({ name: 'Point Béjaïa', city: 'Béjaïa', address: 'Rue de la Liberté' });
+  const store = app.locals.repo.getStore(storeId);
+  assert.match(await (await fetch(base + '/commande')).text(), /Retrait sur place/);
   const res = await postJson('/api/commande', {
     name: 'Yacine Test',
     phone: '+213 770 11 22 33',
@@ -188,4 +203,88 @@ test("l'admin crée un produit avec photo", async () => {
   noCsrf.set('name', 'Pirate');
   const rejected = await fetch(`${base}/admin/produits`, { method: 'POST', headers: { cookie }, body: noCsrf, redirect: 'manual' });
   assert.equal(rejected.status, 403);
+});
+
+test('une pointure sans quantité connue reste commandable', async () => {
+  const { product } = productWithStock();
+  const res = await order([{ productId: product.id, size: '43', qty: 3 }]);
+  assert.equal(res.status, 200);
+  assert.equal(app.locals.repo.getProduct(product.id).sizes.find((s) => s.size === '43').stock, null);
+});
+
+test('commission figée sur la commande et comptes fournisseur', async () => {
+  const repo = app.locals.repo;
+  const supplierId = repo.saveSupplier({ name: 'Fournisseur Comptes', phone: '0555000111' });
+  const a = productWithStock({ price: 4000, supplierId, type: 'percent', value: 10 }).product; // 400 DA / paire
+  const b = productWithStock({ price: 3000, supplierId, type: 'fixed', value: 500 }).product; // 500 DA / paire
+
+  // Commande à Béjaïa : livrée et encaissée par moi par défaut.
+  const r1 = await order([{ productId: a.id, size: '42', qty: 2 }], { wilaya: 'Béjaïa', phone: '0550000001' });
+  const o1 = repo.findOrder((await r1.json()).ref, '0550000001');
+  assert.equal(o1.delivered_by, 'moi');
+  assert.equal(o1.collected_by, 'moi');
+  assert.equal(o1.items[0].commission, 400);
+  assert.equal(o1.items[0].supplier_name, 'Fournisseur Comptes');
+
+  // Commande à Alger : le fournisseur livre et encaisse.
+  const r2 = await order([{ productId: b.id, size: '42', qty: 1 }], { wilaya: 'Alger', phone: '0550000002' });
+  const o2 = repo.findOrder((await r2.json()).ref, '0550000002');
+  assert.equal(o2.collected_by, 'fournisseur');
+
+  // Changer la commission après coup ne change pas les commandes passées.
+  repo.saveProduct({ ...a, commission_value: 50, sizes: null }, a.id);
+  assert.equal(repo.getOrder(o1.id).items[0].commission, 400);
+
+  // Pas encore livrées : rien à régler.
+  assert.equal(repo.accounts().suppliers.find((s) => s.id === supplierId), undefined);
+
+  repo.setOrderStatus(o1.id, 'livree');
+  repo.setOrderStatus(o2.id, 'livree');
+  const acc = repo.accounts().suppliers.find((s) => s.id === supplierId);
+  // J'ai encaissé 8000, je lui dois 8000 - 800 = 7200 ; il a encaissé 3000, il me doit 500. Solde : 6700 pour lui.
+  assert.equal(acc.sales, 11000);
+  assert.equal(acc.commission, 1300);
+  assert.equal(acc.balance, 6700);
+
+  const month = new Date().toISOString().slice(0, 7);
+  const e = repo.earnings(month);
+  assert.ok(e.commission >= 1300);
+  assert.ok(e.delivery >= o1.delivery_fee);
+
+  repo.settle(supplierId);
+  assert.equal(repo.accounts().suppliers.find((s) => s.id === supplierId), undefined);
+  assert.equal(repo.listSettlements()[0].amount, 6700);
+
+  // Une commande retournée ne compte pas.
+  const r3 = await order([{ productId: a.id, size: '42', qty: 1 }], { phone: '0550000003' });
+  const o3 = repo.findOrder((await r3.json()).ref, '0550000003');
+  repo.setOrderStatus(o3.id, 'retour');
+  assert.equal(repo.accounts().suppliers.find((s) => s.id === supplierId), undefined);
+});
+
+test('pages admin fournisseurs, à préparer et comptes', async () => {
+  const { cookie, csrf } = await login();
+  for (const url of ['/admin/fournisseurs', '/admin/fournisseurs/nouveau', '/admin/a-preparer', '/admin/comptes', '/admin/produits/nouveau']) {
+    assert.equal((await fetch(base + url, { headers: { cookie } })).status, 200, url);
+  }
+  const res = await fetch(base + '/admin/fournisseurs', {
+    method: 'POST',
+    headers: { cookie, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `_csrf=${csrf}&name=Ahmed+Chaussures&city=Akbou&phone=0661000000&default_commission_type=fixed&default_commission_value=700`,
+    redirect: 'manual',
+  });
+  assert.equal(res.status, 302);
+  const s = app.locals.repo.listSuppliers().find((x) => x.name === 'Ahmed Chaussures');
+  assert.equal(s.default_commission_value, 700);
+
+  // Une commande confirmée apparaît dans "À préparer" avec le lien WhatsApp du fournisseur.
+  const { product } = productWithStock({ supplierId: s.id });
+  const r = await order([{ productId: product.id, size: '43', qty: 1 }], { phone: '0550000004' });
+  const o = app.locals.repo.findOrder((await r.json()).ref, '0550000004');
+  app.locals.repo.setOrderStatus(o.id, 'confirmee');
+  const html = await (await fetch(base + '/admin/a-preparer', { headers: { cookie } })).text();
+  assert.match(html, /Ahmed Chaussures/);
+  assert.match(html, /wa\.me\/213661000000/);
+  const orderPage = await (await fetch(`${base}/admin/commandes/${o.id}`, { headers: { cookie } })).text();
+  assert.match(orderPage, /WhatsApp → Ahmed Chaussures/);
 });

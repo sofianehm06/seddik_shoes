@@ -33,15 +33,19 @@ const PRODUCTS = [
   ['Socquettes Femme x3', 'femme', 'accessoires', 'Blanc', 'Home', 800, null, false, ['35-38', '39-42'], 'Lot de 3 paires de socquettes invisibles.'],
 ];
 
-const STORES = [
-  ['Seddik Shoes — Centre-ville', 'Alger', '12 rue Didouche Mourad, Alger Centre', '0555 11 11 11', 'Sam–Jeu : 9h – 20h', ''],
-  ['Seddik Shoes — Bab Ezzouar', 'Alger', 'Centre commercial, Bab Ezzouar', '0555 22 22 22', 'Tous les jours : 10h – 21h', ''],
-  ['Seddik Shoes — Blida', 'Blida', 'Boulevard Larbi Tebessi, Blida', '0555 33 33 33', 'Sam–Jeu : 9h – 19h', ''],
+const SUPPLIERS = [
+  ['Seddik', 'Alger', '0555 11 11 11', 'percent', 15],
+  ['Fournisseur 2 (démo)', 'Sétif', '0555 22 22 22', 'fixed', 800],
 ];
 
 function seedDemo(repo) {
   if (repo.listProducts({ includeInactive: true, perPage: 1 }).total > 0) return false;
+  const supplierIds = SUPPLIERS.map(([name, city, phone, type, value]) =>
+    repo.saveSupplier({ name, city, phone, whatsapp: phone, default_commission_type: type, default_commission_value: value })
+  );
   PRODUCTS.forEach(([name, gender, category, color, brand, price, oldPrice, featured, sizes, description], i) => {
+    const s = i % 3 === 2 ? 1 : 0;
+    const [, , , type, value] = SUPPLIERS[s];
     repo.saveProduct({
       name,
       gender,
@@ -53,14 +57,13 @@ function seedDemo(repo) {
       featured,
       active: true,
       description,
-      sizes: sizes.map((size, j) => ({ size, stock: (i + j) % 7 === 0 ? 0 : ((i * 3 + j) % 6) + 1 })),
+      supplier_id: supplierIds[s],
+      commission_type: type,
+      commission_value: value,
+      // Pointures disponibles sans quantité connue, quelques-unes épuisées.
+      sizes: sizes.map((size, j) => ({ size, stock: (i + j) % 7 === 0 ? 0 : null })),
     });
   });
-  if (repo.listStores().length === 0) {
-    for (const [name, city, address, phone, hours, map_url] of STORES) {
-      repo.saveStore({ name, city, address, phone, hours, map_url });
-    }
-  }
   return true;
 }
 

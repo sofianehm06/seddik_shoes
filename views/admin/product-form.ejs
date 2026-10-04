@@ -15,13 +15,32 @@
   <label>Type *
     <select name="category"><% config.categories.forEach(c => { %><option value="<%= c.slug %>" <%= product.category === c.slug ? 'selected' : '' %>><%= c.label %></option><% }) %></select>
   </label>
+  <label>Fournisseur
+    <select name="supplier_id" data-supplier>
+      <option value="">— Aucun (produit à moi) —</option>
+      <% suppliers.forEach(s => { %><option value="<%= s.id %>" data-type="<%= s.default_commission_type %>" data-value="<%= s.default_commission_value %>" <%= Number(product.supplier_id) === s.id ? 'selected' : '' %>><%= s.name %><%= s.city ? ' (' + s.city + ')' : '' %></option><% }) %>
+    </select>
+    <% if (!suppliers.length) { %><small><a href="/admin/fournisseurs/nouveau">Ajouter un fournisseur</a></small><% } %>
+  </label>
+  <div class="commission" data-commission>
+    <span class="label">Ta commission</span>
+    <div class="commission-row">
+      <input name="commission_value" type="number" min="0" step="1" value="<%= product.commission_value %>" placeholder="0">
+      <select name="commission_type">
+        <option value="percent" <%= product.commission_type !== 'fixed' ? 'selected' : '' %>>% du prix</option>
+        <option value="fixed" <%= product.commission_type === 'fixed' ? 'selected' : '' %>><%= config.currency %> par paire</option>
+      </select>
+    </div>
+    <small data-commission-preview></small>
+  </div>
   <label>Marque<input name="brand" maxlength="60" value="<%= product.brand %>"></label>
   <label>Couleur<input name="color" maxlength="40" value="<%= product.color %>" placeholder="Noir, Blanc, Marron…"></label>
   <label>Prix (<%= config.currency %>) *<input name="price" type="number" min="1" step="1" required value="<%= product.price %>"></label>
   <label>Ancien prix (promo)<input name="old_price" type="number" min="1" step="1" value="<%= product.old_price || '' %>" placeholder="Laisser vide si pas de promo"></label>
-  <label class="span-2">Pointures et stock *
-    <input name="sizes" required value="<%= sizesText %>" placeholder="38:5, 39:3, 40:0, 41:2">
-    <small>Format « pointure:quantité » séparés par des virgules. Ex : <code>38:5, 39:3, 40:2</code></small>
+  <label class="span-2">Pointures disponibles *
+    <input name="sizes" required value="<%= sizesText %>" placeholder="38, 39, 40, 41, 42">
+    <small>Séparées par des virgules : <code>38, 39, 40</code>. Une pointure épuisée : <code>41:0</code>.
+      Si tu connais la quantité : <code>42:3</code> (elle baissera toute seule à chaque commande).</small>
   </label>
   <label class="span-2">Description<textarea name="description" rows="5" maxlength="3000"><%= product.description %></textarea></label>
   <div class="span-2">

@@ -2,7 +2,7 @@
 <div class="container section narrow">
   <h1>Suivre ma commande</h1>
   <form class="panel row" action="/suivi">
-    <label>Numéro de commande<input name="ref" required placeholder="SS-XXXXXX-XXXXXX" value="<%= query.ref || '' %>"></label>
+    <label>Numéro de commande<input name="ref" required placeholder="BS-XXXXXX-XXXXXX" value="<%= query.ref || '' %>"></label>
     <label>Téléphone<input name="tel" type="tel" required value="<%= query.tel || '' %>"></label>
     <button class="btn btn-primary">Rechercher</button>
   </form>

@@ -1,0 +1,30 @@
+<%- include('_head') %>
+<p><a href="/admin/fournisseurs">← Fournisseurs</a></p>
+<h1><%= supplier.id ? supplier.name : 'Nouveau fournisseur' %></h1>
+<% if (errors.length) { %><div class="alert"><% errors.forEach(e => { %><div><%= e %></div><% }) %></div><% } %>
+<form method="post" action="/admin/fournisseurs<%= supplier.id ? '/' + supplier.id : '' %>" class="panel form-grid">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label>Nom *<input name="name" required value="<%= supplier.name || '' %>"></label>
+  <label>Ville<input name="city" value="<%= supplier.city || '' %>"></label>
+  <label>Téléphone<input name="phone" type="tel" value="<%= supplier.phone || '' %>"></label>
+  <label>WhatsApp<input name="whatsapp" type="tel" value="<%= supplier.whatsapp || '' %>" placeholder="Si différent du téléphone"></label>
+  <div class="span-2">
+    <span class="label">Commission par défaut</span>
+    <div class="commission-row">
+      <input name="default_commission_value" type="number" min="0" step="1" value="<%= supplier.default_commission_value %>">
+      <select name="default_commission_type">
+        <option value="percent" <%= supplier.default_commission_type !== 'fixed' ? 'selected' : '' %>>% du prix</option>
+        <option value="fixed" <%= supplier.default_commission_type === 'fixed' ? 'selected' : '' %>><%= config.currency %> par paire</option>
+      </select>
+    </div>
+    <small class="muted">Proposée automatiquement quand tu ajoutes un produit de ce fournisseur ; tu peux la changer produit par produit.</small>
+  </div>
+  <label class="span-2">Notes<textarea name="notes" rows="3" placeholder="Adresse des boutiques, conditions, jours de passage…"><%= supplier.notes || '' %></textarea></label>
+  <div class="span-2"><button class="btn btn-primary">Enregistrer</button></div>
+</form>
+<% if (supplier.id) { %>
+  <form method="post" action="/admin/fournisseurs/<%= supplier.id %>/supprimer" class="danger-zone" data-confirm="Supprimer ce fournisseur ?">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Supprimer le fournisseur</button>
+  </form>
+<% } %>
+<%- include('_foot') %>

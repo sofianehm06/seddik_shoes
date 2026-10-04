@@ -1,7 +1,24 @@
-# Seddik Shoes — boutique en ligne
+# Bougie Shoes — boutique en ligne
 
-Site e-commerce pour vendre des chaussures (homme, femme, garçon, fille, bébé : baskets, sandales,
-claquettes, mocassins, bottes, escarpins, pantoufles, chaussettes…).
+Site e-commerce basé à Béjaïa pour vendre en ligne les chaussures de plusieurs fournisseurs
+(homme, femme, garçon, fille, bébé : baskets, sandales, claquettes, mocassins, bottes, escarpins,
+pantoufles, chaussettes…), avec une **commission par produit**.
+
+## Comment ça marche
+
+1. Tu mets les produits en ligne, chacun rattaché à son **fournisseur** avec **ta commission**
+   (en % du prix ou en DA par paire). Tu indiques seulement les pointures disponibles :
+   c'est le fournisseur qui connaît son stock.
+2. Une commande arrive → tu appelles le client et tu la passes en **Confirmée**.
+3. Page **À préparer** : les articles sont regroupés par fournisseur, un bouton envoie la liste
+   sur **WhatsApp** au fournisseur, qui prépare la commande.
+4. Sur chaque commande, tu notes **qui livre** (toi, par ex. à Béjaïa, ou le fournisseur via la
+   société de livraison) et **qui encaisse** l'argent. Béjaïa = « moi » par défaut, le reste = « fournisseur ».
+5. Commande **Livrée** (ou **Retournée** si le client refuse) → page **Comptes** :
+   pour chaque fournisseur, ce que tu lui dois ou ce qu'il te doit, tes commissions et tes
+   frais de livraison. Bouton « Marquer comme réglé » une fois l'argent échangé.
+
+La commission est figée au moment de la commande : la modifier ensuite ne change pas les comptes passés.
 
 ## Fonctionnalités
 
@@ -12,14 +29,18 @@ claquettes, mocassins, bottes, escarpins, pantoufles, chaussettes…).
 - Commande sans compte, **paiement à la livraison** : à domicile, en point relais (stop desk) ou retrait gratuit en boutique
 - Frais de livraison par wilaya (58 wilayas) + livraison offerte au-delà d'un montant
 - Page de confirmation et **suivi de commande** (n° de commande + téléphone)
-- Page « Nos boutiques », bouton WhatsApp, site adapté au mobile
+- Points de retrait (optionnels), bouton WhatsApp, site adapté au mobile
+- Le site n'affiche jamais le nom des fournisseurs aux clients
 
 **Administration** (`/admin`)
-- Tableau de bord : nouvelles commandes, CA du mois, alertes de stock faible
-- Commandes : recherche, filtre par statut, changement de statut (nouvelle → confirmée → expédiée → livrée / annulée).
-  Annuler une commande remet les articles en stock automatiquement.
-- Produits : ajout / modification / suppression, photos (plusieurs par produit), pointures et stock, promo (ancien prix), mise en avant
-- Boutiques physiques : adresses, horaires, téléphone, lien Google Maps
+- Tableau de bord : commandes à confirmer, à faire préparer, tes gains du mois
+- Commandes : statut (nouvelle → confirmée → expédiée → livrée / retournée / annulée), qui livre, qui encaisse,
+  message WhatsApp prêt pour chaque fournisseur, détail commission / part fournisseur
+- À préparer : articles des commandes confirmées regroupés par fournisseur
+- Produits : fournisseur, commission, photos, pointures disponibles (quantité facultative), promo, mise en avant
+- Fournisseurs : coordonnées, WhatsApp, commission par défaut
+- Comptes : gains par mois (commissions + livraisons faites par toi), soldes par fournisseur, historique des règlements
+- Points de retrait (facultatif) : si tu en ajoutes, le client peut choisir le retrait gratuit
 - Changement du mot de passe
 
 ## Lancer le site
@@ -36,13 +57,13 @@ ADMIN_PASSWORD=unMotDePasseSolide npm start
 
 Si `ADMIN_PASSWORD` n'est pas défini au premier démarrage, un mot de passe est généré et affiché dans la console.
 
-Des produits et boutiques de démonstration sont créés au premier démarrage (désactivable avec `SEED_DEMO=0`).
+Des produits et fournisseurs de démonstration sont créés au premier démarrage (désactivable avec `SEED_DEMO=0`).
 Supprimez-les depuis l'admin et ajoutez les vrais produits avec leurs photos.
 
 ## Personnalisation
 
 Tout se règle dans [`src/config.js`](src/config.js) : nom de la boutique, téléphone, WhatsApp, e-mail,
-réseaux sociaux, rayons, types de produits, frais de livraison par wilaya, seuil de livraison gratuite.
+réseaux sociaux, rayons, types de produits, frais de livraison par wilaya, seuil de livraison gratuite, wilayas où tu livres toi-même (`localWilayas`).
 
 Variables d'environnement utiles :
 

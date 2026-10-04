@@ -3,21 +3,23 @@
 <form class="toolbar">
   <input type="search" name="q" placeholder="Rechercher…" value="<%= query.q || '' %>">
   <select name="genre"><option value="">Tous les rayons</option><% config.genders.forEach(g => { %><option value="<%= g.slug %>" <%= query.genre === g.slug ? 'selected' : '' %>><%= g.label %></option><% }) %></select>
+  <select name="fournisseur"><option value="">Tous les fournisseurs</option><% suppliers.forEach(s => { %><option value="<%= s.id %>" <%= Number(query.fournisseur) === s.id ? 'selected' : '' %>><%= s.name %></option><% }) %></select>
   <select name="type"><option value="">Tous les types</option><% config.categories.forEach(c => { %><option value="<%= c.slug %>" <%= query.type === c.slug ? 'selected' : '' %>><%= c.label %></option><% }) %></select>
   <button class="btn btn-ghost">Filtrer</button>
 </form>
 <div class="table-wrap">
 <table class="table">
-  <thead><tr><th></th><th>Nom</th><th>Rayon</th><th>Type</th><th class="num">Prix</th><th class="num">Stock</th><th>État</th></tr></thead>
+  <thead><tr><th></th><th>Nom</th><th>Fournisseur</th><th>Rayon / type</th><th class="num">Prix</th><th class="num">Ta commission</th><th>Pointures</th><th>État</th></tr></thead>
   <tbody>
     <% products.forEach(p => { %>
       <tr class="clickable" data-href="/admin/produits/<%= p.id %>">
         <td><img src="<%= imageUrl(p) %>" alt="" class="thumb"></td>
         <td><a href="/admin/produits/<%= p.id %>"><%= p.name %></a><% if (p.featured) { %> ⭐<% } %></td>
-        <td><%= label(config.genders, p.gender) %></td>
-        <td><%= label(config.categories, p.category) %></td>
+        <td><%= p.supplier_name || '—' %></td>
+        <td><%= label(config.genders, p.gender) %> · <%= label(config.categories, p.category) %></td>
         <td class="num"><%= formatPrice(p.price) %></td>
-        <td class="num <%= p.totalStock === 0 ? 'danger' : '' %>"><%= p.totalStock %></td>
+        <td class="num"><%= p.supplier_id ? formatPrice(p.commission) : '—' %><% if (p.supplier_id && p.commission_type === 'percent') { %> <small class="muted">(<%= p.commission_value %> %)</small><% } %></td>
+        <td class="<%= p.available ? '' : 'danger' %>"><%= p.sizes.filter(s => s.stock !== 0).map(s => s.size).join(' ') || 'Épuisé' %></td>
         <td><%= p.active ? 'En ligne' : 'Masqué' %></td>
       </tr>
     <% }) %>

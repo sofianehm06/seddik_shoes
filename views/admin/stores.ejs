@@ -1,5 +1,6 @@
 <%- include('_head') %>
-<div class="section-head"><h1>Boutiques</h1><a class="btn btn-primary" href="/admin/boutiques/nouvelle">+ Nouvelle boutique</a></div>
+<div class="section-head"><h1>Points de retrait</h1><a class="btn btn-primary" href="/admin/boutiques/nouvelle">+ Nouveau point</a></div>
+<p class="muted">Lieux où les clients peuvent retirer leur commande gratuitement. Sans point de retrait, l'option n'apparaît pas sur le site.</p>
 <div class="stores">
   <% stores.forEach(s => { %>
     <a class="store" href="/admin/boutiques/<%= s.id %>"><h3><%= s.name %></h3><p><%= s.address %></p><p class="muted"><%= s.phone %></p></a>

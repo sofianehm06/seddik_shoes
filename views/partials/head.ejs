@@ -32,7 +32,7 @@
         <a href="/boutique?type=sandales">Sandales</a>
         <a href="/boutique?type=claquettes">Claquettes</a>
         <a href="/boutique?promo=1" class="nav-promo">Promos</a>
-        <a href="/boutiques" class="nav-secondary">Nos boutiques</a>
+        <% if (typeof hasStores !== 'undefined' && hasStores) { %><a href="/boutiques" class="nav-secondary">Points de retrait</a><% } %>
         <a href="/suivi" class="nav-secondary">Suivre ma commande</a>
       </div>
     </nav>

@@ -1,10 +1,10 @@
 <%- include('_head') %>
 <h1>Tableau de bord</h1>
 <div class="kpis">
-  <a class="kpi" href="/admin/commandes?statut=nouvelle"><span>Nouvelles commandes</span><strong><%= stats.newOrders %></strong></a>
-  <div class="kpi"><span>Commandes aujourd'hui</span><strong><%= stats.ordersToday %></strong></div>
-  <div class="kpi"><span>CA livré ce mois</span><strong><%= formatPrice(stats.revenueMonth) %></strong></div>
-  <a class="kpi" href="/admin/produits"><span>Produits en ligne</span><strong><%= stats.products %></strong></a>
+  <a class="kpi" href="/admin/commandes?statut=nouvelle"><span>Nouvelles commandes (à confirmer)</span><strong><%= stats.newOrders %></strong></a>
+  <a class="kpi" href="/admin/a-preparer"><span>À faire préparer</span><strong><%= stats.toPrepare %></strong></a>
+  <a class="kpi kpi-accent" href="/admin/comptes"><span>Tes gains ce mois</span><strong><%= formatPrice(stats.earnings.total) %></strong></a>
+  <div class="kpi"><span>Ventes livrées ce mois</span><strong><%= formatPrice(stats.earnings.sales) %></strong></div>
 </div>
 <div class="two-cols">
   <section class="panel">
@@ -12,7 +12,7 @@
     <%- include('_orders-table', { orders }) %>
   </section>
   <section class="panel">
-    <h2 class="h3">Stock faible</h2>
+    <h2 class="h3">Pointures épuisées ou presque</h2>
     <% if (!stats.lowStock.length) { %><p class="muted">Rien à signaler 👍</p><% } %>
     <ul class="low-stock">
       <% stats.lowStock.forEach(s => { %>

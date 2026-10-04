@@ -29,6 +29,20 @@ function deliveryFee(mode, wilaya, subtotal) {
   return override.home ?? delivery.homeFee;
 }
 
+// Commission par paire : pourcentage du prix de vente, ou montant fixe en DA.
+function commissionAmount(price, type, value) {
+  const v = Number(value) || 0;
+  return type === 'fixed' ? Math.min(v, price) : Math.round((price * v) / 100);
+}
+
+// Lien WhatsApp à partir d'un numéro algérien (0555... -> 213555...).
+function whatsappLink(phone, text = '') {
+  let digits = String(phone || '').replace(/\D/g, '');
+  if (digits.startsWith('0')) digits = '213' + digits.slice(1);
+  if (!digits) return '';
+  return `https://wa.me/${digits}${text ? '?text=' + encodeURIComponent(text) : ''}`;
+}
+
 // Mots de passe : scrypt avec sel aléatoire, stocké "sel:hash".
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -85,7 +99,7 @@ function parseCookies(header) {
 
 function orderRef() {
   const date = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-  return `SS-${date}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+  return `BS-${date}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
 }
 
 // Numéros algériens : 05/06/07 + 8 chiffres (mobile) ou fixe 0XX XX XX XX.
@@ -102,6 +116,8 @@ module.exports = {
   formatPrice,
   label,
   deliveryFee,
+  commissionAmount,
+  whatsappLink,
   hashPassword,
   verifyPassword,
   signSession,

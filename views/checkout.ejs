@@ -13,7 +13,7 @@
         <label class="mode"><input type="radio" name="deliveryMode" value="domicile" checked><span><strong>À domicile</strong><small>Le livreur vient chez vous</small></span></label>
         <label class="mode"><input type="radio" name="deliveryMode" value="stopdesk"><span><strong>Point relais (stop desk)</strong><small>Moins cher, à récupérer au bureau du livreur</small></span></label>
         <% if (stores.length) { %>
-          <label class="mode"><input type="radio" name="deliveryMode" value="boutique"><span><strong>Retrait en boutique</strong><small>Gratuit</small></span></label>
+          <label class="mode"><input type="radio" name="deliveryMode" value="boutique"><span><strong>Retrait sur place</strong><small>Gratuit</small></span></label>
         <% } %>
       </div>
 
@@ -32,7 +32,7 @@
         <label>Adresse *<input name="address" maxlength="200" autocomplete="street-address" placeholder="Rue, cité, bâtiment…"></label>
       </div>
       <div data-when="boutique" hidden>
-        <label>Boutique *
+        <label>Point de retrait *
           <select name="storeId">
             <% stores.forEach(s => { %><option value="<%= s.id %>"><%= s.name %> — <%= s.address %></option><% }) %>
           </select>

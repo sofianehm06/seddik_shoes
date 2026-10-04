@@ -1,6 +1,6 @@
 const config = require('./config');
 const { transaction } = require('./db');
-const { slugify, deliveryFee, orderRef } = require('./lib');
+const { slugify, deliveryFee, orderRef, commissionAmount } = require('./lib');
 
 const SORTS = {
   recent: 'p.created_at DESC, p.id DESC',
@@ -20,7 +20,9 @@ function createRepo(db) {
     product.sizes = db
       .prepare('SELECT size, stock FROM product_sizes WHERE product_id = ? ORDER BY CAST(size AS REAL), size')
       .all(product.id);
-    product.totalStock = product.sizes.reduce((sum, s) => sum + s.stock, 0);
+    // stock NULL = pointure disponible mais quantité inconnue (c'est le fournisseur qui la connaît).
+    product.available = product.sizes.some((s) => s.stock === null || s.stock > 0);
+    product.commission = commissionAmount(product.price, product.commission_type, product.commission_value);
     return product;
   }
 
@@ -36,8 +38,12 @@ function createRepo(db) {
       where.push('p.category = ?');
       params.push(filters.category);
     }
+    if (filters.supplierId) {
+      where.push('p.supplier_id = ?');
+      params.push(Number(filters.supplierId));
+    }
     if (filters.size) {
-      where.push('EXISTS (SELECT 1 FROM product_sizes s WHERE s.product_id = p.id AND s.size = ? AND s.stock > 0)');
+      where.push('EXISTS (SELECT 1 FROM product_sizes s WHERE s.product_id = p.id AND s.size = ? AND (s.stock IS NULL OR s.stock > 0))');
       params.push(String(filters.size));
     }
     if (filters.q) {
@@ -62,7 +68,8 @@ function createRepo(db) {
     const page = Math.max(1, Number(filters.page) || 1);
     const total = db.prepare(`SELECT COUNT(*) AS n FROM products p ${clause}`).get(...params).n;
     const rows = db
-      .prepare(`SELECT p.* FROM products p ${clause} ORDER BY ${order} LIMIT ? OFFSET ?`)
+      .prepare(`SELECT p.*, sp.name AS supplier_name FROM products p LEFT JOIN suppliers sp ON sp.id = p.supplier_id
+        ${clause} ORDER BY ${order} LIMIT ? OFFSET ?`)
       .all(...params, perPage, (page - 1) * perPage);
     return {
       products: rows.map(hydrate),
@@ -76,14 +83,16 @@ function createRepo(db) {
     return db
       .prepare(
         `SELECT DISTINCT s.size FROM product_sizes s JOIN products p ON p.id = s.product_id
-         WHERE p.active = 1 AND s.stock > 0 ORDER BY CAST(s.size AS REAL), s.size`
+         WHERE p.active = 1 AND (s.stock IS NULL OR s.stock > 0) ORDER BY CAST(s.size AS REAL), s.size`
       )
       .all()
       .map((r) => r.size);
   }
 
   function getProduct(id) {
-    return hydrate(db.prepare('SELECT * FROM products WHERE id = ?').get(id));
+    return hydrate(
+      db.prepare('SELECT p.*, sp.name AS supplier_name FROM products p LEFT JOIN suppliers sp ON sp.id = p.supplier_id WHERE p.id = ?').get(id)
+    );
   }
 
   function getProductBySlug(slug) {
@@ -110,20 +119,23 @@ function createRepo(db) {
         data.color || '',
         data.price,
         data.old_price || null,
+        data.supplier_id || null,
+        data.commission_type === 'fixed' ? 'fixed' : 'percent',
+        Math.max(0, Math.round(Number(data.commission_value) || 0)),
         data.featured ? 1 : 0,
         data.active ? 1 : 0,
       ];
       if (id) {
         db.prepare(
           `UPDATE products SET name=?, description=?, brand=?, gender=?, category=?, color=?, price=?,
-           old_price=?, featured=?, active=?, slug=? WHERE id=?`
+           old_price=?, supplier_id=?, commission_type=?, commission_value=?, featured=?, active=?, slug=? WHERE id=?`
         ).run(...fields, uniqueSlug(data.name, id), id);
       } else {
         id = Number(
           db
             .prepare(
               `INSERT INTO products (name, description, brand, gender, category, color, price, old_price,
-               featured, active, slug) VALUES (?,?,?,?,?,?,?,?,?,?,?)`
+               supplier_id, commission_type, commission_value, featured, active, slug) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
             )
             .run(...fields, uniqueSlug(data.name)).lastInsertRowid
         );
@@ -171,39 +183,104 @@ function createRepo(db) {
 
   const deleteStore = (id) => db.prepare('DELETE FROM stores WHERE id = ?').run(id);
 
+  // --- Fournisseurs ---
+  const listSuppliers = () =>
+    db
+      .prepare(
+        `SELECT sp.*, (SELECT COUNT(*) FROM products p WHERE p.supplier_id = sp.id) AS products
+         FROM suppliers sp ORDER BY sp.name COLLATE NOCASE`
+      )
+      .all();
+  const getSupplier = (id) => db.prepare('SELECT * FROM suppliers WHERE id = ?').get(id);
+
+  function saveSupplier(data, id = null) {
+    const fields = [
+      data.name,
+      data.city || '',
+      data.phone || '',
+      data.whatsapp || '',
+      data.default_commission_type === 'fixed' ? 'fixed' : 'percent',
+      Math.max(0, Math.round(Number(data.default_commission_value) || 0)),
+      data.notes || '',
+    ];
+    if (id) {
+      db.prepare(
+        `UPDATE suppliers SET name=?, city=?, phone=?, whatsapp=?, default_commission_type=?, default_commission_value=?, notes=?
+         WHERE id=?`
+      ).run(...fields, id);
+      return id;
+    }
+    return Number(
+      db
+        .prepare(
+          `INSERT INTO suppliers (name, city, phone, whatsapp, default_commission_type, default_commission_value, notes)
+           VALUES (?,?,?,?,?,?,?)`
+        )
+        .run(...fields).lastInsertRowid
+    );
+  }
+
+  // On ne supprime pas un fournisseur qui a des produits ou des ventes : ça fausserait les comptes.
+  function deleteSupplier(id) {
+    const used =
+      db.prepare('SELECT 1 FROM products WHERE supplier_id = ? LIMIT 1').get(id) ||
+      db.prepare('SELECT 1 FROM order_items WHERE supplier_id = ? LIMIT 1').get(id);
+    if (used) throw new OrderError('Ce fournisseur a des produits ou des ventes : il ne peut pas être supprimé.');
+    db.prepare('DELETE FROM suppliers WHERE id = ?').run(id);
+  }
+
   // --- Commandes ---
   // Les prix sont recalculés côté serveur : on ne fait jamais confiance au panier du navigateur.
   function createOrder(input) {
     return transaction(db, () => {
       const lines = [];
       for (const item of input.items) {
-        const product = db.prepare('SELECT id, name, price FROM products WHERE id = ? AND active = 1').get(item.productId);
+        const product = db
+          .prepare(
+            `SELECT p.id, p.name, p.price, p.supplier_id, p.commission_type, p.commission_value, sp.name AS supplier_name
+             FROM products p LEFT JOIN suppliers sp ON sp.id = p.supplier_id WHERE p.id = ? AND p.active = 1`
+          )
+          .get(item.productId);
         if (!product) throw new OrderError("Un article de votre panier n'est plus disponible.");
         const size = db
           .prepare('SELECT stock FROM product_sizes WHERE product_id = ? AND size = ?')
           .get(product.id, String(item.size));
         if (!size) throw new OrderError(`La pointure ${item.size} n'existe pas pour « ${product.name} ».`);
-        const already = lines.filter((l) => l.productId === product.id && l.size === String(item.size))
-          .reduce((n, l) => n + l.qty, 0);
-        if (size.stock < item.qty + already) {
-          throw new OrderError(
-            size.stock - already > 0
-              ? `Il ne reste que ${size.stock - already} paire(s) de « ${product.name} » en ${item.size}.`
-              : `« ${product.name} » en ${item.size} est en rupture de stock.`
-          );
+        if (size.stock !== null) {
+          const already = lines
+            .filter((l) => l.productId === product.id && l.size === String(item.size))
+            .reduce((n, l) => n + l.qty, 0);
+          if (size.stock < item.qty + already) {
+            throw new OrderError(
+              size.stock - already > 0
+                ? `Il ne reste que ${size.stock - already} paire(s) de « ${product.name} » en ${item.size}.`
+                : `« ${product.name} » en ${item.size} n'est plus disponible.`
+            );
+          }
         }
-        lines.push({ productId: product.id, name: product.name, size: String(item.size), price: product.price, qty: item.qty });
+        lines.push({
+          productId: product.id,
+          name: product.name,
+          size: String(item.size),
+          price: product.price,
+          qty: item.qty,
+          supplierId: product.supplier_id,
+          supplierName: product.supplier_name || '',
+          commission: product.supplier_id ? commissionAmount(product.price, product.commission_type, product.commission_value) : product.price,
+        });
       }
       if (!lines.length) throw new OrderError('Votre panier est vide.');
 
       const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0);
       const fee = deliveryFee(input.deliveryMode, input.wilaya, subtotal);
       const ref = orderRef();
+      // Dans tes wilayas (Béjaïa), c'est toi qui livres et encaisses par défaut ; ailleurs, le fournisseur.
+      const handler = config.delivery.localWilayas.includes(input.wilaya) ? 'moi' : 'fournisseur';
       const orderId = Number(
         db
           .prepare(
             `INSERT INTO orders (ref, customer_name, phone, wilaya, commune, address, delivery_mode, store_id, note,
-             subtotal, delivery_fee, total) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`
+             subtotal, delivery_fee, total, delivered_by, collected_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
           )
           .run(
             ref,
@@ -217,15 +294,20 @@ function createRepo(db) {
             input.note || '',
             subtotal,
             fee,
-            subtotal + fee
+            subtotal + fee,
+            handler,
+            handler
           ).lastInsertRowid
       );
       const insertItem = db.prepare(
-        'INSERT INTO order_items (order_id, product_id, name, size, price, qty) VALUES (?,?,?,?,?,?)'
+        `INSERT INTO order_items (order_id, product_id, name, size, price, qty, supplier_id, supplier_name, commission)
+         VALUES (?,?,?,?,?,?,?,?,?)`
       );
-      const destock = db.prepare('UPDATE product_sizes SET stock = stock - ? WHERE product_id = ? AND size = ?');
+      const destock = db.prepare(
+        'UPDATE product_sizes SET stock = stock - ? WHERE product_id = ? AND size = ? AND stock IS NOT NULL'
+      );
       for (const l of lines) {
-        insertItem.run(orderId, l.productId, l.name, l.size, l.price, l.qty);
+        insertItem.run(orderId, l.productId, l.name, l.size, l.price, l.qty, l.supplierId, l.supplierName, l.commission);
         destock.run(l.qty, l.productId, l.size);
       }
       return { id: orderId, ref, total: subtotal + fee };
@@ -236,7 +318,7 @@ function createRepo(db) {
     const order = db
       .prepare('SELECT o.*, s.name AS store_name, s.city AS store_city FROM orders o LEFT JOIN stores s ON s.id = o.store_id WHERE o.id = ?')
       .get(id);
-    if (order) order.items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id);
+    if (order) order.items = db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY supplier_name, id').all(id);
     return order;
   }
 
@@ -260,18 +342,20 @@ function createRepo(db) {
     return db.prepare(`SELECT * FROM orders ${clause} ORDER BY id DESC LIMIT 500`).all(...params);
   }
 
-  // Annuler une commande remet les articles en stock ; la réactiver les retire à nouveau.
+  // Annuler / retour remet les pointures suivies en stock ; réactiver la commande les retire à nouveau.
   function setOrderStatus(id, status) {
     if (!config.orderStatuses.some((s) => s.slug === status)) throw new OrderError('Statut inconnu.');
     return transaction(db, () => {
       const order = db.prepare('SELECT status FROM orders WHERE id = ?').get(id);
       if (!order) return false;
-      const wasCancelled = order.status === 'annulee';
-      const isCancelled = status === 'annulee';
+      const wasCancelled = config.cancelledStatuses.includes(order.status);
+      const isCancelled = config.cancelledStatuses.includes(status);
       if (wasCancelled !== isCancelled) {
         const sign = isCancelled ? 1 : -1;
         const items = db.prepare('SELECT product_id, size, qty FROM order_items WHERE order_id = ? AND product_id IS NOT NULL').all(id);
-        const update = db.prepare('UPDATE product_sizes SET stock = MAX(0, stock + ?) WHERE product_id = ? AND size = ?');
+        const update = db.prepare(
+          'UPDATE product_sizes SET stock = MAX(0, stock + ?) WHERE product_id = ? AND size = ? AND stock IS NOT NULL'
+        );
         for (const it of items) update.run(sign * it.qty, it.product_id, it.size);
       }
       db.prepare('UPDATE orders SET status = ? WHERE id = ?').run(status, id);
@@ -279,19 +363,144 @@ function createRepo(db) {
     });
   }
 
+  function setOrderHandling(id, deliveredBy, collectedBy) {
+    const ok = (v) => (v === 'moi' ? 'moi' : 'fournisseur');
+    db.prepare('UPDATE orders SET delivered_by = ?, collected_by = ? WHERE id = ?').run(ok(deliveredBy), ok(collectedBy), id);
+  }
+
+  // Articles des commandes confirmées, regroupés par fournisseur : ce qu'il faut lui demander de préparer.
+  function toPrepare() {
+    const rows = db
+      .prepare(
+        `SELECT i.*, o.ref, o.customer_name, o.wilaya, o.delivered_by, o.id AS order_id
+         FROM order_items i JOIN orders o ON o.id = i.order_id
+         WHERE o.status = 'confirmee' ORDER BY i.supplier_name, o.id`
+      )
+      .all();
+    const groups = new Map();
+    for (const r of rows) {
+      const key = r.supplier_id || 0;
+      if (!groups.has(key)) {
+        const supplier = r.supplier_id ? getSupplier(r.supplier_id) : null;
+        groups.set(key, { supplier, name: supplier?.name || r.supplier_name || 'Mes produits (sans fournisseur)', items: [] });
+      }
+      groups.get(key).items.push(r);
+    }
+    return [...groups.values()];
+  }
+
+  // --- Comptes avec les fournisseurs ---
+  // Pour chaque paire livrée et pas encore réglée :
+  //  - si c'est toi qui as encaissé : tu dois au fournisseur (prix - ta commission)
+  //  - si c'est le fournisseur qui a encaissé : il te doit ta commission
+  function accounts() {
+    const rows = db
+      .prepare(
+        `SELECT i.supplier_id, i.supplier_name, o.collected_by,
+                SUM(i.qty) AS pairs, SUM(i.price * i.qty) AS sales, SUM(i.commission * i.qty) AS commission
+         FROM order_items i JOIN orders o ON o.id = i.order_id
+         WHERE o.status = 'livree' AND i.settled_at IS NULL
+         GROUP BY i.supplier_id, o.collected_by`
+      )
+      .all();
+    const bySupplier = new Map();
+    let own = { pairs: 0, sales: 0 };
+    for (const r of rows) {
+      if (!r.supplier_id) {
+        own.pairs += r.pairs;
+        own.sales += r.sales;
+        continue;
+      }
+      if (!bySupplier.has(r.supplier_id)) {
+        const supplier = getSupplier(r.supplier_id);
+        bySupplier.set(r.supplier_id, {
+          id: r.supplier_id,
+          name: supplier?.name || r.supplier_name,
+          supplier,
+          pairs: 0,
+          sales: 0,
+          commission: 0,
+          collectedByMe: 0,
+          collectedBySupplier: 0,
+          balance: 0, // > 0 : tu lui dois ; < 0 : il te doit
+        });
+      }
+      const a = bySupplier.get(r.supplier_id);
+      a.pairs += r.pairs;
+      a.sales += r.sales;
+      a.commission += r.commission;
+      if (r.collected_by === 'moi') {
+        a.collectedByMe += r.sales;
+        a.balance += r.sales - r.commission;
+      } else {
+        a.collectedBySupplier += r.sales;
+        a.balance -= r.commission;
+      }
+    }
+    return { suppliers: [...bySupplier.values()], own };
+  }
+
+  function settle(supplierId) {
+    return transaction(db, () => {
+      const a = accounts().suppliers.find((s) => s.id === supplierId);
+      if (!a) return null;
+      db.prepare(
+        `UPDATE order_items SET settled_at = datetime('now')
+         WHERE supplier_id = ? AND settled_at IS NULL AND order_id IN (SELECT id FROM orders WHERE status = 'livree')`
+      ).run(supplierId);
+      db.prepare('INSERT INTO settlements (supplier_id, supplier_name, amount, items) VALUES (?,?,?,?)').run(
+        supplierId,
+        a.name,
+        a.balance,
+        a.pairs
+      );
+      return a;
+    });
+  }
+
+  const listSettlements = () => db.prepare('SELECT * FROM settlements ORDER BY id DESC LIMIT 50').all();
+
+  // Tes gains sur une période (format 'AAAA-MM') : commissions + frais des livraisons que tu as faites toi-même.
+  function earnings(month) {
+    const m = month || new Date().toISOString().slice(0, 7);
+    const commission = db
+      .prepare(
+        `SELECT COALESCE(SUM(i.commission * i.qty), 0) AS n FROM order_items i JOIN orders o ON o.id = i.order_id
+         WHERE o.status = 'livree' AND strftime('%Y-%m', o.created_at) = ?`
+      )
+      .get(m).n;
+    const delivery = db
+      .prepare(
+        `SELECT COALESCE(SUM(delivery_fee), 0) AS n, COUNT(*) AS c FROM orders
+         WHERE status = 'livree' AND delivered_by = 'moi' AND strftime('%Y-%m', created_at) = ?`
+      )
+      .get(m);
+    const sales = db
+      .prepare(`SELECT COALESCE(SUM(subtotal), 0) AS n, COUNT(*) AS c FROM orders WHERE status = 'livree' AND strftime('%Y-%m', created_at) = ?`)
+      .get(m);
+    return {
+      month: m,
+      commission,
+      delivery: delivery.n,
+      deliveries: delivery.c,
+      sales: sales.n,
+      orders: sales.c,
+      total: commission + delivery.n,
+    };
+  }
+
   function stats() {
     const one = (sql) => db.prepare(sql).get().n;
     return {
       newOrders: one("SELECT COUNT(*) AS n FROM orders WHERE status = 'nouvelle'"),
+      toPrepare: one("SELECT COUNT(*) AS n FROM orders WHERE status = 'confirmee'"),
       ordersToday: one("SELECT COUNT(*) AS n FROM orders WHERE date(created_at) = date('now')"),
-      revenueMonth: one(
-        "SELECT COALESCE(SUM(total), 0) AS n FROM orders WHERE status = 'livree' AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')"
-      ),
+      earnings: earnings(),
       products: one('SELECT COUNT(*) AS n FROM products WHERE active = 1'),
       lowStock: db
         .prepare(
           `SELECT p.id, p.name, s.size, s.stock FROM product_sizes s JOIN products p ON p.id = s.product_id
-           WHERE p.active = 1 AND s.stock <= 2 ORDER BY s.stock, p.name LIMIT 15`
+           WHERE p.active = 1 AND s.stock IS NOT NULL AND s.stock <= 2 ORDER BY s.stock, p.name LIMIT 15`
         )
         .all(),
     };
@@ -318,6 +527,16 @@ function createRepo(db) {
     findOrder,
     listOrders,
     setOrderStatus,
+    setOrderHandling,
+    toPrepare,
+    listSuppliers,
+    getSupplier,
+    saveSupplier,
+    deleteSupplier,
+    accounts,
+    settle,
+    listSettlements,
+    earnings,
     stats,
     getSetting,
     setSetting,

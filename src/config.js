@@ -1,11 +1,12 @@
 // Paramètres de la boutique : à adapter au client (nom, contacts, livraison...).
 module.exports = {
   shop: {
-    name: process.env.SHOP_NAME || 'Seddik Shoes',
-    slogan: 'Tout pour vos pieds, de la tête aux orteils… enfin, surtout les orteils.',
+    name: process.env.SHOP_NAME || 'Bougie Shoes',
+    slogan: 'Chaussures pour toute la famille, depuis Béjaïa vers les 58 wilayas.',
+    city: 'Béjaïa',
     phone: process.env.SHOP_PHONE || '0555 00 00 00',
     whatsapp: process.env.SHOP_WHATSAPP || '213555000000', // format international, sans "+"
-    email: process.env.SHOP_EMAIL || 'contact@seddik-shoes.dz',
+    email: process.env.SHOP_EMAIL || 'contact@bougie-shoes.dz',
     facebook: process.env.SHOP_FACEBOOK || '',
     instagram: process.env.SHOP_INSTAGRAM || '',
   },
@@ -42,7 +43,10 @@ module.exports = {
     deskFee: 400, // frais "stop desk" (point relais du livreur)
     freeAbove: 15000, // livraison offerte à partir de ce montant (0 = jamais)
     // Tarifs particuliers par wilaya : { 'Alger': { home: 400, desk: 250 } }
+    // Wilayas où tu livres toi-même : la livraison est marquée "par moi" par défaut.
+    localWilayas: ['Béjaïa'],
     overrides: {
+      Béjaïa: { home: 300, desk: 300 },
       Alger: { home: 400, desk: 250 },
       Blida: { home: 500, desk: 300 },
       Boumerdès: { home: 500, desk: 300 },
@@ -65,11 +69,15 @@ module.exports = {
     'In Salah', 'In Guezzam', 'Touggourt', 'Djanet', "El M'Ghair", 'El Meniaa',
   ],
 
+  // Statuts où les articles ne sont pas vendus (remis en disponibilité, pas comptés dans les comptes).
+  cancelledStatuses: ['annulee', 'retour'],
+
   orderStatuses: [
     { slug: 'nouvelle', label: 'Nouvelle' },
     { slug: 'confirmee', label: 'Confirmée' },
     { slug: 'expediee', label: 'Expédiée' },
     { slug: 'livree', label: 'Livrée' },
+    { slug: 'retour', label: 'Retournée' },
     { slug: 'annulee', label: 'Annulée' },
   ],
 };

@@ -12,7 +12,7 @@
       <div>
         <h4>Aide</h4>
         <a href="/suivi">Suivre ma commande</a>
-        <a href="/boutiques">Nos boutiques</a>
+        <% if (typeof hasStores !== 'undefined' && hasStores) { %><a href="/boutiques">Points de retrait</a><% } %>
         <a href="/panier">Mon panier</a>
       </div>
       <div>

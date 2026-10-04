@@ -4,7 +4,7 @@
     <div>
       <p class="eyebrow">Nouvelle collection</p>
       <h1>Des chaussures pour toute la famille</h1>
-      <p>Homme, femme, enfant : baskets, sandales, claquettes, mocassins, bottes… Commandez en ligne, payez à la livraison ou retirez en boutique.</p>
+      <p>Homme, femme, enfant : baskets, sandales, claquettes, mocassins, bottes… Commandez en ligne et payez à la livraison, partout en Algérie.</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="/boutique">Voir tous les produits</a>
         <a class="btn btn-ghost" href="/boutique?promo=1">Les promos</a>
@@ -55,14 +55,14 @@
   <div class="perks">
     <div><strong>🚚 Livraison partout</strong><span>Dans les 58 wilayas, à domicile ou en point relais.</span></div>
     <div><strong>💵 Paiement à la livraison</strong><span>Vous payez seulement quand vous recevez.</span></div>
-    <div><strong>🏬 Retrait en boutique</strong><span>Gratuit, dans l'une de nos <%= stores.length %> boutiques.</span></div>
+    <div><strong>📍 Basés à <%= config.shop.city %></strong><span>Livraison rapide à <%= config.shop.city %>, expédition partout ailleurs.</span></div>
     <div><strong>🔁 Échange facile</strong><span>Pas la bonne pointure ? Échange sous 7 jours.</span></div>
   </div>
 </section>
 
 <% if (stores.length) { %>
 <section class="container section">
-  <div class="section-head"><h2>Nos boutiques</h2><a href="/boutiques">Toutes les adresses →</a></div>
+  <div class="section-head"><h2>Points de retrait</h2><a href="/boutiques">Toutes les adresses →</a></div>
   <div class="stores">
     <% stores.slice(0, 3).forEach(s => { %>
       <div class="store"><h3><%= s.name %></h3><p>📍 <%= s.address %></p><% if (s.hours) { %><p>🕘 <%= s.hours %></p><% } %></div>

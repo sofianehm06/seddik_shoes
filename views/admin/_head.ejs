@@ -16,8 +16,11 @@
     <nav>
       <a href="/admin" class="<%= path === '/admin' ? 'active' : '' %>">Tableau de bord</a>
       <a href="/admin/commandes" class="<%= path.startsWith('/admin/commandes') ? 'active' : '' %>">Commandes</a>
+      <a href="/admin/a-preparer" class="<%= path.startsWith('/admin/a-preparer') ? 'active' : '' %>">À préparer</a>
       <a href="/admin/produits" class="<%= path.startsWith('/admin/produits') ? 'active' : '' %>">Produits</a>
-      <a href="/admin/boutiques" class="<%= path.startsWith('/admin/boutiques') ? 'active' : '' %>">Boutiques</a>
+      <a href="/admin/fournisseurs" class="<%= path.startsWith('/admin/fournisseurs') ? 'active' : '' %>">Fournisseurs</a>
+      <a href="/admin/comptes" class="<%= path.startsWith('/admin/comptes') ? 'active' : '' %>">Comptes</a>
+      <a href="/admin/boutiques" class="<%= path.startsWith('/admin/boutiques') ? 'active' : '' %>">Points de retrait</a>
       <a href="/admin/mot-de-passe" class="<%= path.startsWith('/admin/mot-de-passe') ? 'active' : '' %>">Mot de passe</a>
       <a href="/" target="_blank">Voir le site ↗</a>
       <form method="post" action="/admin/deconnexion"><input type="hidden" name="_csrf" value="<%= csrf %>"><button>Déconnexion</button></form>

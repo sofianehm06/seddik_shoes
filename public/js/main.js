@@ -31,7 +31,7 @@
         var stock = Number(r.dataset.stock);
         qtyInput.max = Math.min(10, stock);
         if (Number(qtyInput.value) > stock) qtyInput.value = stock;
-        hint.textContent = stock <= 2 ? 'Plus que ' + stock + ' paire(s) disponible(s) !' : 'En stock';
+        hint.textContent = r.dataset.known === '1' && stock <= 2 ? 'Plus que ' + stock + ' paire(s) disponible(s) !' : 'Disponible';
       });
     });
     buy.addEventListener('submit', function (e) {
