@@ -1,0 +1,14 @@
+<% if (typeof layout !== 'undefined' && layout === 'admin') { %>
+  <%- include('admin/_head') %>
+  <h1><%= title %></h1><p><%= message %></p><p><a href="/admin">← Retour</a></p>
+  <%- include('admin/_foot') %>
+<% } else { %>
+  <%- include('partials/head') %>
+  <div class="container section narrow center">
+    <div class="big-icon">👟</div>
+    <h1><%= title %></h1>
+    <p><%= message %></p>
+    <a class="btn btn-primary" href="/">Retour à l'accueil</a>
+  </div>
+  <%- include('partials/foot') %>
+<% } %>

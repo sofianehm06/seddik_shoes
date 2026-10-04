@@ -1,0 +1,75 @@
+<%- include('partials/head') %>
+<%
+  const link = (changes) => {
+    const params = new URLSearchParams();
+    const merged = { genre: filters.gender, type: filters.category, pointure: filters.size, q: filters.q, min: filters.min, max: filters.max, promo: filters.promo ? '1' : '', tri: filters.sort, ...changes };
+    for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
+    const s = params.toString();
+    return '/boutique' + (s ? '?' + s : '');
+  };
+%>
+<div class="container section">
+  <nav class="breadcrumb"><a href="/">Accueil</a> › <span><%= title %></span></nav>
+  <div class="catalog-head">
+    <h1><%= title %> <small>(<%= total %> article<%= total > 1 ? 's' : '' %>)</small></h1>
+    <button class="btn btn-ghost filters-toggle" data-filters-toggle>Filtres</button>
+  </div>
+  <div class="catalog">
+    <aside class="filters" data-filters>
+      <form action="/boutique">
+        <% if (filters.q) { %><input type="hidden" name="q" value="<%= filters.q %>"><% } %>
+        <label>Rayon
+          <select name="genre"><option value="">Tous</option>
+            <% config.genders.forEach(g => { %><option value="<%= g.slug %>" <%= filters.gender === g.slug ? 'selected' : '' %>><%= g.label %></option><% }) %>
+          </select>
+        </label>
+        <label>Type
+          <select name="type"><option value="">Tous</option>
+            <% config.categories.forEach(c => { %><option value="<%= c.slug %>" <%= filters.category === c.slug ? 'selected' : '' %>><%= c.label %></option><% }) %>
+          </select>
+        </label>
+        <fieldset>
+          <legend>Pointure</legend>
+          <div class="size-filter">
+            <% sizes.forEach(s => { %>
+              <label class="size-pill"><input type="radio" name="pointure" value="<%= s %>" <%= filters.size === s ? 'checked' : '' %>><span><%= s %></span></label>
+            <% }) %>
+          </div>
+        </fieldset>
+        <div class="row">
+          <label>Prix min<input type="number" name="min" min="0" step="100" value="<%= filters.min %>"></label>
+          <label>Prix max<input type="number" name="max" min="0" step="100" value="<%= filters.max %>"></label>
+        </div>
+        <label class="check"><input type="checkbox" name="promo" value="1" <%= filters.promo ? 'checked' : '' %>> En promotion</label>
+        <label>Trier par
+          <select name="tri">
+            <option value="recent" <%= filters.sort === 'recent' ? 'selected' : '' %>>Nouveautés</option>
+            <option value="prix-asc" <%= filters.sort === 'prix-asc' ? 'selected' : '' %>>Prix croissant</option>
+            <option value="prix-desc" <%= filters.sort === 'prix-desc' ? 'selected' : '' %>>Prix décroissant</option>
+            <option value="nom" <%= filters.sort === 'nom' ? 'selected' : '' %>>Nom</option>
+          </select>
+        </label>
+        <button class="btn btn-primary btn-block">Appliquer</button>
+        <a class="reset" href="/boutique">Réinitialiser les filtres</a>
+      </form>
+    </aside>
+    <div>
+      <% if (!products.length) { %>
+        <div class="empty">
+          <p>Aucun produit ne correspond à votre recherche.</p>
+          <a class="btn btn-primary" href="/boutique">Voir tous les produits</a>
+        </div>
+      <% } else { %>
+        <div class="grid"><% products.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+        <% if (pages > 1) { %>
+          <nav class="pagination">
+            <% for (let i = 1; i <= pages; i++) { %>
+              <a href="<%= link({ page: i }) %>" class="<%= i === page ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+          </nav>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+</div>
+<%- include('partials/foot') %>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? `${title} | ${config.shop.name}` : `${config.shop.name} — Chaussures homme, femme et enfant` %></title>
+  <meta name="description" content="<%= typeof description !== 'undefined' ? description : `${config.shop.name} : chaussures homme, femme et enfant, sandales, claquettes, baskets… Livraison dans les 58 wilayas, paiement à la livraison.` %>">
+  <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <span>🚚 Livraison 58 wilayas</span>
+    <span>💵 Paiement à la livraison</span>
+    <span>🔁 Échange sous 7 jours</span>
+  </div>
+  <header class="header">
+    <div class="container header-inner">
+      <button class="menu-toggle" aria-label="Menu" aria-expanded="false" data-menu-toggle>☰</button>
+      <a href="/" class="logo"><img src="/img/logo.svg" alt="" width="34" height="34"><span><%= config.shop.name %></span></a>
+      <form class="search" action="/boutique" role="search">
+        <input type="search" name="q" placeholder="Rechercher une chaussure, une marque…" value="<%= path === '/boutique' && query.q ? query.q : '' %>" aria-label="Rechercher">
+        <button aria-label="Rechercher">🔍</button>
+      </form>
+      <a href="/panier" class="cart-link" aria-label="Panier">🛒<span class="cart-count" data-cart-count hidden>0</span></a>
+    </div>
+    <nav class="nav" data-menu>
+      <div class="container nav-inner">
+        <% config.genders.forEach(g => { %>
+          <a href="/boutique?genre=<%= g.slug %>" class="<%= query.genre === g.slug ? 'active' : '' %>"><%= g.label %></a>
+        <% }) %>
+        <a href="/boutique?type=sandales">Sandales</a>
+        <a href="/boutique?type=claquettes">Claquettes</a>
+        <a href="/boutique?promo=1" class="nav-promo">Promos</a>
+        <a href="/boutiques" class="nav-secondary">Nos boutiques</a>
+        <a href="/suivi" class="nav-secondary">Suivre ma commande</a>
+      </div>
+    </nav>
+  </header>
+  <main>

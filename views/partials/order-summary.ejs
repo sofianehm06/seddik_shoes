@@ -1,0 +1,13 @@
+<table class="table">
+  <thead><tr><th>Article</th><th>Pointure</th><th>Qté</th><th class="num">Prix</th></tr></thead>
+  <tbody>
+    <% order.items.forEach(it => { %>
+      <tr><td><%= it.name %></td><td><%= it.size %></td><td><%= it.qty %></td><td class="num"><%= formatPrice(it.price * it.qty) %></td></tr>
+    <% }) %>
+  </tbody>
+  <tfoot>
+    <tr><td colspan="3">Sous-total</td><td class="num"><%= formatPrice(order.subtotal) %></td></tr>
+    <tr><td colspan="3">Livraison</td><td class="num"><%= order.delivery_fee ? formatPrice(order.delivery_fee) : 'Gratuite' %></td></tr>
+    <tr class="total"><td colspan="3">Total à payer</td><td class="num"><%= formatPrice(order.total) %></td></tr>
+  </tfoot>
+</table>

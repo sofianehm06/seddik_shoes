@@ -1,0 +1,20 @@
+<%- include('_head') %>
+<p><a href="/admin/boutiques">← Boutiques</a></p>
+<h1><%= store.id ? store.name : 'Nouvelle boutique' %></h1>
+<% if (errors.length) { %><div class="alert"><% errors.forEach(e => { %><div><%= e %></div><% }) %></div><% } %>
+<form method="post" action="/admin/boutiques<%= store.id ? '/' + store.id : '' %>" class="panel form-grid">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label class="span-2">Nom *<input name="name" required value="<%= store.name || '' %>"></label>
+  <label>Ville *<input name="city" required value="<%= store.city || '' %>"></label>
+  <label>Téléphone<input name="phone" value="<%= store.phone || '' %>"></label>
+  <label class="span-2">Adresse *<input name="address" required value="<%= store.address || '' %>"></label>
+  <label>Horaires<input name="hours" value="<%= store.hours || '' %>" placeholder="Sam–Jeu : 9h – 20h"></label>
+  <label>Lien Google Maps<input name="map_url" type="url" value="<%= store.map_url || '' %>" placeholder="https://maps.app.goo.gl/…"></label>
+  <div class="span-2"><button class="btn btn-primary">Enregistrer</button></div>
+</form>
+<% if (store.id) { %>
+  <form method="post" action="/admin/boutiques/<%= store.id %>/supprimer" class="danger-zone" data-confirm="Supprimer cette boutique ?">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger">Supprimer la boutique</button>
+  </form>
+<% } %>
+<%- include('_foot') %>

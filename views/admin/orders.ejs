@@ -1,0 +1,9 @@
+<%- include('_head') %>
+<h1>Commandes</h1>
+<form class="toolbar">
+  <input type="search" name="q" placeholder="N°, nom ou téléphone" value="<%= query.q || '' %>">
+  <select name="statut"><option value="">Tous les statuts</option><% config.orderStatuses.forEach(s => { %><option value="<%= s.slug %>" <%= status === s.slug ? 'selected' : '' %>><%= s.label %></option><% }) %></select>
+  <button class="btn btn-ghost">Filtrer</button>
+</form>
+<%- include('_orders-table', { orders }) %>
+<%- include('_foot') %>

@@ -1,0 +1,8 @@
+<%- include('_head') %>
+<div class="section-head"><h1>Boutiques</h1><a class="btn btn-primary" href="/admin/boutiques/nouvelle">+ Nouvelle boutique</a></div>
+<div class="stores">
+  <% stores.forEach(s => { %>
+    <a class="store" href="/admin/boutiques/<%= s.id %>"><h3><%= s.name %></h3><p><%= s.address %></p><p class="muted"><%= s.phone %></p></a>
+  <% }) %>
+</div>
+<%- include('_foot') %>

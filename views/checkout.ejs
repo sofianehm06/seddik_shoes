@@ -1,0 +1,59 @@
+<%- include('partials/head') %>
+<script>window.DELIVERY = <%- JSON.stringify(config.delivery).replace(/</g, '\\u003c') %>;</script>
+<div class="container section">
+  <h1>Finaliser ma commande</h1>
+  <div class="checkout">
+    <form class="panel" data-checkout novalidate>
+      <h2 class="h3">Vos coordonnées</h2>
+      <label>Nom et prénom *<input name="name" required maxlength="100" autocomplete="name"></label>
+      <label>Téléphone *<input name="phone" type="tel" required placeholder="05XX XX XX XX" autocomplete="tel"></label>
+
+      <h2 class="h3">Livraison</h2>
+      <div class="delivery-modes">
+        <label class="mode"><input type="radio" name="deliveryMode" value="domicile" checked><span><strong>À domicile</strong><small>Le livreur vient chez vous</small></span></label>
+        <label class="mode"><input type="radio" name="deliveryMode" value="stopdesk"><span><strong>Point relais (stop desk)</strong><small>Moins cher, à récupérer au bureau du livreur</small></span></label>
+        <% if (stores.length) { %>
+          <label class="mode"><input type="radio" name="deliveryMode" value="boutique"><span><strong>Retrait en boutique</strong><small>Gratuit</small></span></label>
+        <% } %>
+      </div>
+
+      <div data-when="domicile stopdesk">
+        <div class="row">
+          <label>Wilaya *
+            <select name="wilaya" required>
+              <option value="">— Choisir —</option>
+              <% config.wilayas.forEach((w, i) => { %><option value="<%= w %>"><%= String(i + 1).padStart(2, '0') %> - <%= w %></option><% }) %>
+            </select>
+          </label>
+          <label>Commune<input name="commune" maxlength="80"></label>
+        </div>
+      </div>
+      <div data-when="domicile">
+        <label>Adresse *<input name="address" maxlength="200" autocomplete="street-address" placeholder="Rue, cité, bâtiment…"></label>
+      </div>
+      <div data-when="boutique" hidden>
+        <label>Boutique *
+          <select name="storeId">
+            <% stores.forEach(s => { %><option value="<%= s.id %>"><%= s.name %> — <%= s.address %></option><% }) %>
+          </select>
+        </label>
+      </div>
+      <label>Remarque (facultatif)<textarea name="note" rows="2" maxlength="500" placeholder="Horaires de disponibilité, précisions…"></textarea></label>
+
+      <div class="errors" data-errors hidden></div>
+      <button class="btn btn-primary btn-lg btn-block" data-submit>Confirmer la commande</button>
+      <p class="muted small">Paiement en espèces à la livraison. Nous vous appellerons pour confirmer la commande.</p>
+    </form>
+
+    <aside class="panel summary">
+      <h2 class="h3">Récapitulatif</h2>
+      <div data-summary><p class="muted">Chargement…</p></div>
+      <dl class="totals">
+        <div><dt>Sous-total</dt><dd data-subtotal>—</dd></div>
+        <div><dt>Livraison</dt><dd data-fee>—</dd></div>
+        <div class="total"><dt>Total</dt><dd data-total>—</dd></div>
+      </dl>
+    </aside>
+  </div>
+</div>
+<%- include('partials/foot') %>

@@ -1,0 +1,56 @@
+<%- include('_head') %>
+<p><a href="/admin/produits">← Produits</a></p>
+<div class="section-head">
+  <h1><%= product.id ? product.name : 'Nouveau produit' %></h1>
+  <% if (product.id && product.active) { %><a href="/produit/<%= product.slug %>" target="_blank">Voir sur le site ↗</a><% } %>
+</div>
+<% if (query.ok) { %><p class="success">Produit enregistré ✔</p><% } %>
+<% if (errors.length) { %><div class="alert"><% errors.forEach(e => { %><div><%= e %></div><% }) %></div><% } %>
+
+<form method="post" enctype="multipart/form-data" action="/admin/produits<%= product.id ? '/' + product.id : '' %>?_csrf=<%= csrf %>" class="panel form-grid">
+  <label class="span-2">Nom *<input name="name" required maxlength="120" value="<%= product.name %>"></label>
+  <label>Rayon *
+    <select name="gender"><% config.genders.forEach(g => { %><option value="<%= g.slug %>" <%= product.gender === g.slug ? 'selected' : '' %>><%= g.label %></option><% }) %></select>
+  </label>
+  <label>Type *
+    <select name="category"><% config.categories.forEach(c => { %><option value="<%= c.slug %>" <%= product.category === c.slug ? 'selected' : '' %>><%= c.label %></option><% }) %></select>
+  </label>
+  <label>Marque<input name="brand" maxlength="60" value="<%= product.brand %>"></label>
+  <label>Couleur<input name="color" maxlength="40" value="<%= product.color %>" placeholder="Noir, Blanc, Marron…"></label>
+  <label>Prix (<%= config.currency %>) *<input name="price" type="number" min="1" step="1" required value="<%= product.price %>"></label>
+  <label>Ancien prix (promo)<input name="old_price" type="number" min="1" step="1" value="<%= product.old_price || '' %>" placeholder="Laisser vide si pas de promo"></label>
+  <label class="span-2">Pointures et stock *
+    <input name="sizes" required value="<%= sizesText %>" placeholder="38:5, 39:3, 40:0, 41:2">
+    <small>Format « pointure:quantité » séparés par des virgules. Ex : <code>38:5, 39:3, 40:2</code></small>
+  </label>
+  <label class="span-2">Description<textarea name="description" rows="5" maxlength="3000"><%= product.description %></textarea></label>
+  <div class="span-2">
+    <span class="label">Photos</span>
+    <% if (product.images && product.images.length) { %>
+      <div class="images">
+        <% product.images.forEach(img => { %>
+          <div class="image">
+            <img src="/uploads/<%= img.path %>" alt="">
+            <button type="submit" form="del-img-<%= img.id %>" class="btn-x" title="Supprimer" data-confirm="Supprimer cette photo ?">✕</button>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+    <input type="file" name="images" accept="image/jpeg,image/png,image/webp" multiple>
+    <small>JPG, PNG ou WebP, 5 Mo max par photo. La première photo est l'image principale.</small>
+  </div>
+  <label class="check"><input type="checkbox" name="featured" value="1" <%= product.featured ? 'checked' : '' %>> Mettre en avant (coup de cœur)</label>
+  <label class="check"><input type="checkbox" name="active" value="1" <%= product.active ? 'checked' : '' %>> Visible sur le site</label>
+  <div class="span-2"><button class="btn btn-primary btn-lg">Enregistrer</button></div>
+</form>
+
+<% if (product.id) { %>
+  <% (product.images || []).forEach(img => { %>
+    <form method="post" id="del-img-<%= img.id %>" action="/admin/produits/<%= product.id %>/images/<%= img.id %>/supprimer"><input type="hidden" name="_csrf" value="<%= csrf %>"></form>
+  <% }) %>
+  <form method="post" action="/admin/produits/<%= product.id %>/supprimer" class="danger-zone" data-confirm="Supprimer définitivement ce produit ?">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <button class="btn btn-danger">Supprimer le produit</button>
+  </form>
+<% } %>
+<%- include('_foot') %>

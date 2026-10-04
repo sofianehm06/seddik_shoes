@@ -1,0 +1,74 @@
+<%- include('partials/head', { description: product.description.slice(0, 160) }) %>
+<div class="container section">
+  <nav class="breadcrumb">
+    <a href="/">Accueil</a> ›
+    <a href="/boutique?genre=<%= product.gender %>"><%= label(config.genders, product.gender) %></a> ›
+    <a href="/boutique?genre=<%= product.gender %>&type=<%= product.category %>"><%= label(config.categories, product.category) %></a> ›
+    <span><%= product.name %></span>
+  </nav>
+  <div class="product">
+    <div class="gallery">
+      <img src="<%= imageUrl(product) %>" alt="<%= product.name %>" class="gallery-main" data-gallery-main>
+      <% if (product.images.length > 1) { %>
+        <div class="thumbs">
+          <% product.images.forEach((img, i) => { %>
+            <button type="button" data-gallery-thumb="<%= imageUrl(product, i) %>" class="<%= i === 0 ? 'active' : '' %>"><img src="<%= imageUrl(product, i) %>" alt=""></button>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+    <div class="product-info">
+      <% if (product.brand) { %><p class="eyebrow"><%= product.brand %></p><% } %>
+      <h1><%= product.name %></h1>
+      <div class="price price-lg">
+        <strong><%= formatPrice(product.price) %></strong>
+        <% if (product.old_price && product.old_price > product.price) { %>
+          <s><%= formatPrice(product.old_price) %></s>
+          <span class="badge badge-promo">-<%= Math.round((1 - product.price / product.old_price) * 100) %>%</span>
+        <% } %>
+      </div>
+      <% if (product.color) { %><p>Couleur : <strong><%= product.color %></strong></p><% } %>
+
+      <form class="buy" data-add-to-cart data-product-id="<%= product.id %>">
+        <fieldset>
+          <legend><%= product.category === 'accessoires' ? 'Taille' : 'Pointure' %></legend>
+          <div class="sizes">
+            <% product.sizes.forEach(s => { %>
+              <label class="size-pill <%= s.stock === 0 ? 'disabled' : '' %>" title="<%= s.stock === 0 ? 'Épuisé' : s.stock <= 2 ? `Plus que ${s.stock}` : 'Disponible' %>">
+                <input type="radio" name="size" value="<%= s.size %>" data-stock="<%= s.stock %>" <%= s.stock === 0 ? 'disabled' : '' %> required>
+                <span><%= s.size %></span>
+              </label>
+            <% }) %>
+          </div>
+          <p class="stock-hint" data-stock-hint></p>
+        </fieldset>
+        <div class="buy-row">
+          <label class="qty">Qté <input type="number" name="qty" value="1" min="1" max="10"></label>
+          <button class="btn btn-primary btn-lg" <%= product.totalStock === 0 ? 'disabled' : '' %>>
+            <%= product.totalStock === 0 ? 'Épuisé' : 'Ajouter au panier' %>
+          </button>
+        </div>
+        <p class="form-msg" data-cart-msg role="status"></p>
+      </form>
+
+      <ul class="assurances">
+        <li>💵 Paiement à la livraison</li>
+        <li>🚚 Livraison 58 wilayas — dès <%= formatPrice(Math.min(config.delivery.deskFee, ...Object.values(config.delivery.overrides).map(o => o.desk ?? config.delivery.deskFee))) %></li>
+        <li>🏬 Retrait gratuit en boutique</li>
+        <% if (config.delivery.freeAbove) { %><li>🎁 Livraison offerte dès <%= formatPrice(config.delivery.freeAbove) %></li><% } %>
+      </ul>
+      <% if (product.description) { %>
+        <h2 class="h3">Description</h2>
+        <p class="description"><%= product.description %></p>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (similar.length) { %>
+    <section class="section">
+      <h2>Vous aimerez aussi</h2>
+      <div class="grid"><% similar.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+    </section>
+  <% } %>
+</div>
+<%- include('partials/foot') %>

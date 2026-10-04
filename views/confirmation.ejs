@@ -1,0 +1,18 @@
+<%- include('partials/head') %>
+<div class="container section narrow">
+  <div class="panel center">
+    <div class="big-icon">✅</div>
+    <h1>Merci <%= order.customer_name.split(' ')[0] %> !</h1>
+    <p>Votre commande <strong><%= order.ref %></strong> a bien été enregistrée.</p>
+    <p>Nous allons vous appeler au <strong><%= order.phone %></strong> pour la confirmer.</p>
+    <% if (order.delivery_mode === 'boutique') { %>
+      <p>Retrait à : <strong><%= order.store_name %></strong></p>
+    <% } else { %>
+      <p>Livraison <%= order.delivery_mode === 'stopdesk' ? 'en point relais' : 'à domicile' %> — <%= order.wilaya %></p>
+    <% } %>
+  </div>
+  <div class="panel"><%- include('partials/order-summary', { order }) %></div>
+  <p class="center"><a class="btn btn-ghost" href="/suivi?ref=<%= order.ref %>&tel=<%= order.phone %>">Suivre ma commande</a> <a class="btn btn-primary" href="/boutique">Continuer mes achats</a></p>
+</div>
+<script>try { localStorage.removeItem('cart'); } catch (e) {}</script>
+<%- include('partials/foot') %>

@@ -1,0 +1,17 @@
+<%- include('partials/head') %>
+<div class="container section">
+  <h1>Nos boutiques</h1>
+  <p class="muted">Venez essayer nos modèles ou retirer gratuitement votre commande en ligne.</p>
+  <div class="stores">
+    <% stores.forEach(s => { %>
+      <div class="store">
+        <h3><%= s.name %></h3>
+        <p>📍 <%= s.address %></p>
+        <% if (s.hours) { %><p>🕘 <%= s.hours %></p><% } %>
+        <% if (s.phone) { %><p>📞 <a href="tel:<%= s.phone.replace(/\s/g, '') %>"><%= s.phone %></a></p><% } %>
+        <% if (s.map_url) { %><p><a href="<%= s.map_url %>" target="_blank" rel="noopener">Voir sur la carte →</a></p><% } %>
+      </div>
+    <% }) %>
+  </div>
+</div>
+<%- include('partials/foot') %>

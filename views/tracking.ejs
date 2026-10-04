@@ -1,0 +1,27 @@
+<%- include('partials/head') %>
+<div class="container section narrow">
+  <h1>Suivre ma commande</h1>
+  <form class="panel row" action="/suivi">
+    <label>Numéro de commande<input name="ref" required placeholder="SS-XXXXXX-XXXXXX" value="<%= query.ref || '' %>"></label>
+    <label>Téléphone<input name="tel" type="tel" required value="<%= query.tel || '' %>"></label>
+    <button class="btn btn-primary">Rechercher</button>
+  </form>
+  <% if (searched && !order) { %>
+    <p class="alert">Aucune commande trouvée avec ces informations.</p>
+  <% } %>
+  <% if (order) { %>
+    <% const steps = ['nouvelle', 'confirmee', 'expediee', 'livree']; const current = steps.indexOf(order.status); %>
+    <div class="panel">
+      <h2 class="h3">Commande <%= order.ref %></h2>
+      <% if (order.status === 'annulee') { %>
+        <p class="alert">Cette commande a été annulée.</p>
+      <% } else { %>
+        <ol class="steps">
+          <% steps.forEach((s, i) => { %><li class="<%= i <= current ? 'done' : '' %>"><%= label(config.orderStatuses, s) %></li><% }) %>
+        </ol>
+      <% } %>
+      <%- include('partials/order-summary', { order }) %>
+    </div>
+  <% } %>
+</div>
+<%- include('partials/foot') %>

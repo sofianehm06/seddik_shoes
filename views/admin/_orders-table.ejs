@@ -1,0 +1,19 @@
+<div class="table-wrap">
+<table class="table">
+  <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Téléphone</th><th>Livraison</th><th class="num">Total</th><th>Statut</th></tr></thead>
+  <tbody>
+    <% if (!orders.length) { %><tr><td colspan="7" class="muted">Aucune commande.</td></tr><% } %>
+    <% orders.forEach(o => { %>
+      <tr class="clickable" data-href="/admin/commandes/<%= o.id %>">
+        <td><a href="/admin/commandes/<%= o.id %>"><%= o.ref %></a></td>
+        <td><%= o.created_at.slice(0, 16) %></td>
+        <td><%= o.customer_name %></td>
+        <td><a href="tel:<%= o.phone %>"><%= o.phone %></a></td>
+        <td><%= { domicile: 'Domicile', stopdesk: 'Stop desk', boutique: 'Boutique' }[o.delivery_mode] %> · <%= o.wilaya %></td>
+        <td class="num"><%= formatPrice(o.total) %></td>
+        <td><%- include('_status', { status: o.status }) %></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+</div>

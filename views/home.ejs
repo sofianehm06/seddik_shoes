@@ -1,0 +1,73 @@
+<%- include('partials/head') %>
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <p class="eyebrow">Nouvelle collection</p>
+      <h1>Des chaussures pour toute la famille</h1>
+      <p>Homme, femme, enfant : baskets, sandales, claquettes, mocassins, bottes… Commandez en ligne, payez à la livraison ou retirez en boutique.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/boutique">Voir tous les produits</a>
+        <a class="btn btn-ghost" href="/boutique?promo=1">Les promos</a>
+      </div>
+    </div>
+    <img src="/placeholder.svg?c=baskets&color=orange" alt="" class="hero-img">
+  </div>
+</section>
+
+<section class="container section">
+  <div class="tiles">
+    <% [['homme','Homme','baskets','noir'],['femme','Femme','escarpins','rouge'],['garcon','Garçon','baskets','bleu'],['fille','Fille','ballerines','rose'],['bebe','Bébé','baskets','jaune']].forEach(([slug, name, cat, color]) => { %>
+      <a class="tile" href="/boutique?genre=<%= slug %>">
+        <img src="/placeholder.svg?c=<%= cat %>&color=<%= color %>" alt="">
+        <span><%= name %></span>
+      </a>
+    <% }) %>
+  </div>
+</section>
+
+<% if (featured.length) { %>
+<section class="container section">
+  <div class="section-head"><h2>Nos coups de cœur</h2><a href="/boutique">Tout voir →</a></div>
+  <div class="grid"><% featured.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+</section>
+<% } %>
+
+<section class="container section">
+  <h2>Acheter par type</h2>
+  <div class="chips">
+    <% config.categories.forEach(c => { %><a class="chip" href="/boutique?type=<%= c.slug %>"><%= c.label %></a><% }) %>
+  </div>
+</section>
+
+<% if (promos.length) { %>
+<section class="container section">
+  <div class="section-head"><h2>Promotions</h2><a href="/boutique?promo=1">Toutes les promos →</a></div>
+  <div class="grid"><% promos.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+</section>
+<% } %>
+
+<section class="container section">
+  <div class="section-head"><h2>Nouveautés</h2><a href="/boutique?tri=recent">Tout voir →</a></div>
+  <div class="grid"><% latest.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+</section>
+
+<section class="container section">
+  <div class="perks">
+    <div><strong>🚚 Livraison partout</strong><span>Dans les 58 wilayas, à domicile ou en point relais.</span></div>
+    <div><strong>💵 Paiement à la livraison</strong><span>Vous payez seulement quand vous recevez.</span></div>
+    <div><strong>🏬 Retrait en boutique</strong><span>Gratuit, dans l'une de nos <%= stores.length %> boutiques.</span></div>
+    <div><strong>🔁 Échange facile</strong><span>Pas la bonne pointure ? Échange sous 7 jours.</span></div>
+  </div>
+</section>
+
+<% if (stores.length) { %>
+<section class="container section">
+  <div class="section-head"><h2>Nos boutiques</h2><a href="/boutiques">Toutes les adresses →</a></div>
+  <div class="stores">
+    <% stores.slice(0, 3).forEach(s => { %>
+      <div class="store"><h3><%= s.name %></h3><p>📍 <%= s.address %></p><% if (s.hours) { %><p>🕘 <%= s.hours %></p><% } %></div>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+<%- include('partials/foot') %>

@@ -1,0 +1,30 @@
+<%- include('_head') %>
+<p><a href="/admin/commandes">← Commandes</a></p>
+<div class="section-head"><h1>Commande <%= order.ref %></h1><%- include('_status', { status: order.status }) %></div>
+<div class="two-cols">
+  <section class="panel">
+    <h2 class="h3">Client</h2>
+    <p><strong><%= order.customer_name %></strong></p>
+    <p>📞 <a href="tel:<%= order.phone %>"><%= order.phone %></a> · <a href="https://wa.me/213<%= order.phone.slice(1) %>" target="_blank" rel="noopener">WhatsApp</a></p>
+    <% if (order.delivery_mode === 'boutique') { %>
+      <p>🏬 Retrait en boutique : <strong><%= order.store_name || 'boutique supprimée' %></strong></p>
+    <% } else { %>
+      <p>🚚 <%= order.delivery_mode === 'stopdesk' ? 'Stop desk' : 'À domicile' %> — <%= order.wilaya %><%= order.commune ? ', ' + order.commune : '' %></p>
+      <% if (order.address) { %><p>📍 <%= order.address %></p><% } %>
+    <% } %>
+    <% if (order.note) { %><p>📝 <em><%= order.note %></em></p><% } %>
+    <p class="muted small">Passée le <%= order.created_at %> (UTC)</p>
+  </section>
+  <section class="panel">
+    <h2 class="h3">Changer le statut</h2>
+    <form method="post" action="/admin/commandes/<%= order.id %>/statut" class="status-form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <% config.orderStatuses.forEach(s => { %>
+        <button name="status" value="<%= s.slug %>" class="btn <%= order.status === s.slug ? 'btn-primary' : 'btn-ghost' %>" <%= order.status === s.slug ? 'disabled' : '' %>><%= s.label %></button>
+      <% }) %>
+    </form>
+    <p class="muted small">Annuler une commande remet automatiquement les articles en stock.</p>
+  </section>
+</div>
+<section class="panel"><%- include('../partials/order-summary', { order }) %></section>
+<%- include('_foot') %>

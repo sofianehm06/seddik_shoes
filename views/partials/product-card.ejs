@@ -1,0 +1,15 @@
+<a class="card" href="/produit/<%= p.slug %>">
+  <div class="card-img">
+    <img src="<%= imageUrl(p) %>" alt="<%= p.name %>" loading="lazy">
+    <% if (p.old_price && p.old_price > p.price) { %><span class="badge badge-promo">-<%= Math.round((1 - p.price / p.old_price) * 100) %>%</span><% } %>
+    <% if (p.totalStock === 0) { %><span class="badge badge-out">Rupture</span><% } %>
+  </div>
+  <div class="card-body">
+    <span class="card-meta"><%= label(config.genders, p.gender) %> · <%= label(config.categories, p.category) %></span>
+    <h3><%= p.name %></h3>
+    <div class="price">
+      <strong><%= formatPrice(p.price) %></strong>
+      <% if (p.old_price && p.old_price > p.price) { %><s><%= formatPrice(p.old_price) %></s><% } %>
+    </div>
+  </div>
+</a>

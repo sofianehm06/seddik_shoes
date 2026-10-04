@@ -1,0 +1,30 @@
+{
+  "name": "seddik_shoes",
+  "version": "1.0.0",
+  "description": "Boutique en ligne de chaussures Seddik Shoes (homme, femme, enfant, sandales, claquettes...)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sofianehm06/seddik_shoes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/sofianehm06/seddik_shoes/issues"
+  },
+  "homepage": "https://github.com/sofianehm06/seddik_shoes#readme",
+  "dependencies": {
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "multer": "^2.4.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.5"
+  }
+}

@@ -1,0 +1,8 @@
+<%- include('_head') %>
+<form method="post" action="/admin/connexion" class="panel login">
+  <h1>Administration</h1>
+  <% if (error) { %><p class="alert"><%= error %></p><% } %>
+  <label>Mot de passe<input type="password" name="password" required autofocus autocomplete="current-password"></label>
+  <button class="btn btn-primary btn-block">Se connecter</button>
+</form>
+<%- include('_foot') %>
