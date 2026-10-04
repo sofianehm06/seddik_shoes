@@ -400,3 +400,11 @@ test("l'admin choisit la photo d'un rayon de l'accueil", async () => {
   await new Promise((r) => setTimeout(r, 50)); // la suppression du fichier se fait en arrière-plan
   assert.ok(!fs.existsSync(path.join(tmp, file)));
 });
+
+test("pas de livraison offerte, même pour une grosse commande", async () => {
+  const { product } = productWithStock({ price: 20000, stock: 3 });
+  const res = await order([{ productId: product.id, size: '42', qty: 2 }], { deliveryMode: 'domicile', wilaya: 'Oran', address: '1 rue Test', phone: '0550000099' });
+  const o = app.locals.repo.findOrder((await res.json()).ref, '0550000099');
+  assert.equal(o.delivery_fee, 600);
+  assert.doesNotMatch(await (await fetch(base + '/')).text(), /Livraison offerte/);
+});

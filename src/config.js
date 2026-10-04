@@ -54,7 +54,7 @@ module.exports = {
   delivery: {
     homeFee: 600, // frais de livraison à domicile par défaut
     deskFee: 400, // frais "stop desk" (point relais du livreur)
-    freeAbove: 15000, // livraison offerte à partir de ce montant (0 = jamais)
+    freeAbove: 0, // livraison offerte à partir de ce montant (0 = jamais, offre désactivée)
     // Tarifs particuliers par wilaya : { 'Alger': { home: 400, desk: 250 } }
     // Wilayas où tu livres toi-même : la livraison est marquée "par moi" par défaut.
     localWilayas: ['Béjaïa'],
