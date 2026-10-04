@@ -75,7 +75,7 @@ function createApp(options = {}) {
 
   const notifier = createNotifier({ transport: options.mailTransport });
   if (!notifier.enabled && !options.dbFile) console.log('  Notifications e-mail désactivées (SMTP_USER / SMTP_PASS non définis).');
-  app.use('/admin', adminRoutes({ repo, secret, uploadsDir, notifier }));
+  app.use('/admin', adminRoutes({ repo, db, secret, uploadsDir, notifier }));
   app.use(shopRoutes({ repo, notifier }));
 
   app.use((req, res) => res.status(404).render('error', { title: 'Page introuvable', message: "Cette page n'existe pas (ou plus)." }));

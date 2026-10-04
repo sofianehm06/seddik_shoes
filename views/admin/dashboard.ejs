@@ -16,6 +16,12 @@
     <span>📧 Notifications e-mail <strong>désactivées</strong> : ajoute SMTP_USER et SMTP_PASS dans les réglages de l'hébergeur (voir le README).</span>
   <% } %>
 </div>
+<% if (stats.products && (backupDays === null || backupDays >= 7)) { %>
+  <div class="notify-bar panel backup-reminder">
+    <span>💾 <%= backupDays === null ? "Tu n'as encore jamais fait de sauvegarde." : `Dernière sauvegarde il y a ${backupDays} jours.` %> Pense à en faire une régulièrement.</span>
+    <a class="btn btn-primary btn-sm" href="/admin/sauvegarde">Sauvegarder</a>
+  </div>
+<% } %>
 <div class="two-cols">
   <section class="panel">
     <div class="section-head"><h2 class="h3">Dernières commandes</h2><a href="/admin/commandes">Toutes →</a></div>

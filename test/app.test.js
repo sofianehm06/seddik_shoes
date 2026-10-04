@@ -355,3 +355,29 @@ test("une panne d'envoi d'e-mail ne bloque pas la commande", async () => {
     fs.rmSync(tmp3, { recursive: true, force: true });
   }
 });
+
+test("la sauvegarde télécharge un zip avec la base et les photos", async () => {
+  const { cookie } = await login();
+  fs.writeFileSync(path.join(tmp, 'photo-test.jpg'), 'fausse photo');
+  const res = await fetch(base + '/admin/sauvegarde/telecharger', { headers: { cookie } });
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('content-type'), 'application/zip');
+  const zip = Buffer.from(await res.arrayBuffer());
+  assert.equal(zip.readUInt32LE(0), 0x04034b50);
+  const names = [];
+  // Lecture du répertoire central pour lister les fichiers.
+  const end = zip.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+  let p = zip.readUInt32LE(end + 16);
+  for (let i = 0; i < zip.readUInt16LE(end + 10); i++) {
+    const len = zip.readUInt16LE(p + 28);
+    names.push(zip.subarray(p + 46, p + 46 + len).toString());
+    p += 46 + len;
+  }
+  assert.ok(names.includes('boutique.db'));
+  assert.ok(names.includes('uploads/photo-test.jpg'));
+  // La base sauvegardée est une vraie base SQLite lisible.
+  const dbStart = 30 + 'boutique.db'.length;
+  assert.equal(zip.subarray(dbStart, dbStart + 15).toString(), 'SQLite format 3');
+  assert.ok(app.locals.repo.getSetting('last_backup'));
+  assert.equal((await fetch(base + '/admin/sauvegarde/telecharger', { redirect: 'manual' })).status, 302);
+});

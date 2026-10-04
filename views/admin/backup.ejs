@@ -1,0 +1,13 @@
+<%- include('_head') %>
+<h1>Sauvegarde</h1>
+<section class="panel narrow-form">
+  <p>Télécharge un fichier <strong>.zip</strong> qui contient <strong>tout</strong> : produits, fournisseurs, commandes, comptes et photos.</p>
+  <ul class="backup-facts">
+    <li>📷 <%= photos %> photo<%= photos > 1 ? 's' : '' %> (<%= (size / 1024 / 1024).toFixed(1) %> Mo)</li>
+    <li>🕘 Dernière sauvegarde : <strong><%= last ? new Date(last).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }) : 'jamais' %></strong></li>
+  </ul>
+  <a class="btn btn-primary btn-lg btn-block" href="/admin/sauvegarde/telecharger">💾 Télécharger la sauvegarde</a>
+  <p class="muted small">Conseil : une fois par semaine, et range le fichier dans ton Google Drive (shoesbougie@gmail.com) ou sur une clé USB.
+    Ça marche aussi depuis le téléphone : le fichier arrive dans « Téléchargements ».</p>
+</section>
+<%- include('_foot') %>

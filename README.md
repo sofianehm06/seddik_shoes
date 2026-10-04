@@ -111,6 +111,15 @@ Si l'e-mail n'arrive pas : regarde dans les spams, et vérifie que l'hébergeur 
 `smtp.gmail.com` (sinon, utilise l'e-mail de l'hébergeur avec `SMTP_HOST` / `SMTP_PORT`).
 Si l'envoi échoue, la commande est quand même enregistrée normalement.
 
+## Sauvegarde
+
+Admin → **Sauvegarde** → « Télécharger la sauvegarde » : un fichier `.zip` avec la base de données
+(produits, fournisseurs, commandes, comptes) et toutes les photos. Le tableau de bord rappelle d'en faire
+une si la dernière date de plus de 7 jours. Range le fichier dans Google Drive ou sur une clé USB.
+
+Pour restaurer : arrêter le site, remplacer le fichier `DB_FILE` par `boutique.db` du zip, copier le dossier
+`uploads/` du zip dans `UPLOADS_DIR`, puis redémarrer.
+
 ## Mise en ligne
 
 N'importe quel hébergeur Node.js (VPS, Render, Railway, Hostinger VPS…) avec un **disque persistant**

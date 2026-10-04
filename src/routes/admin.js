@@ -4,6 +4,7 @@ const path = require('node:path');
 const express = require('express');
 const multer = require('multer');
 const config = require('../config');
+const { streamBackup } = require('../backup');
 const { OrderError } = require('../repo');
 const { whatsappLink, formatPrice, signSession, readSession, parseCookies, verifyPassword, hashPassword } = require('../lib');
 
@@ -28,7 +29,7 @@ function parseSizes(text) {
   return sizes;
 }
 
-module.exports = function adminRoutes({ repo, secret, uploadsDir, notifier }) {
+module.exports = function adminRoutes({ repo, db, secret, uploadsDir, notifier }) {
   const router = express.Router();
 
   const upload = multer({
@@ -128,8 +129,10 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir, notifier }) {
   });
 
   router.get('/', (req, res) => {
+    const last = repo.getSetting('last_backup');
     res.render('admin/dashboard', {
       title: 'Tableau de bord',
+      backupDays: last ? Math.floor((Date.now() - new Date(last)) / 86400000) : null,
       stats: repo.stats(),
       orders: repo.listOrders().slice(0, 8),
       notify: { enabled: Boolean(notifier?.enabled), to: notifier?.to, result: req.query.email || null },
@@ -402,6 +405,36 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir, notifier }) {
   router.post('/boutiques/:id/supprimer', (req, res) => {
     repo.deleteStore(Number(req.params.id));
     res.redirect('/admin/boutiques');
+  });
+
+  // --- Sauvegarde ---
+  router.get('/sauvegarde', (req, res) => {
+    const photos = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir).filter((f) => !f.startsWith('.')) : [];
+    const size = photos.reduce((sum, f) => {
+      try {
+        return sum + fs.statSync(path.join(uploadsDir, f)).size;
+      } catch {
+        return sum;
+      }
+    }, 0);
+    res.render('admin/backup', { title: 'Sauvegarde', last: repo.getSetting('last_backup'), photos: photos.length, size });
+  });
+
+  router.get('/sauvegarde/telecharger', async (req, res, next) => {
+    const date = new Date().toISOString().slice(0, 10);
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="sauvegarde-bougie-shoes-${date}.zip"`,
+    });
+    try {
+      await streamBackup(res, { db, uploadsDir });
+      repo.setSetting('last_backup', new Date().toISOString());
+      res.end();
+    } catch (err) {
+      if (!res.headersSent) return next(err);
+      console.error('Sauvegarde échouée :', err.message);
+      res.destroy(err);
+    }
   });
 
   // --- Mot de passe ---
