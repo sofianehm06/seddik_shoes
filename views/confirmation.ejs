@@ -1,7 +1,8 @@
 <%- include('partials/head') %>
 <div class="container section narrow">
+  <div class="steps-bar"><span class="done"><b>✓</b>Panier</span><i></i><span class="done"><b>✓</b>Livraison</span><i></i><span class="done"><b>✓</b>Confirmation</span></div>
   <div class="panel center">
-    <div class="big-icon">✅</div>
+    <div class="check-anim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
     <h1>Merci <%= order.customer_name.split(' ')[0] %> !</h1>
     <p>Votre commande <strong><%= order.ref %></strong> a bien été enregistrée.</p>
     <p>Nous allons vous appeler au <strong><%= order.phone %></strong> pour la confirmer.</p>

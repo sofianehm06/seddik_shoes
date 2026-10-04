@@ -1,15 +1,26 @@
-<a class="card" href="/produit/<%= p.slug %>">
+<%
+  const promo = p.old_price && p.old_price > p.price;
+  const isNew = (Date.now() - new Date(p.created_at.replace(' ', 'T') + 'Z')) < 14 * 86400000;
+  const avail = p.sizes.filter(s => s.stock !== 0).map(s => s.size);
+%>
+<a class="card<%= p.available ? '' : ' is-out' %>" href="/produit/<%= p.slug %>" <% if (typeof delay !== 'undefined') { %>data-reveal style="--d: <%= delay %>s"<% } %>>
   <div class="card-img">
-    <img src="<%= imageUrl(p) %>" alt="<%= p.name %>" loading="lazy">
-    <% if (p.old_price && p.old_price > p.price) { %><span class="badge badge-promo">-<%= Math.round((1 - p.price / p.old_price) * 100) %>%</span><% } %>
-    <% if (!p.available) { %><span class="badge badge-out">Rupture</span><% } %>
+    <img src="<%= imageUrl(p) %>" alt="<%= p.name %>" loading="lazy" decoding="async">
+    <% if (p.images.length > 1) { %><img class="alt" src="<%= imageUrl(p, 1) %>" alt="" loading="lazy" decoding="async"><% } %>
+    <div class="badges">
+      <% if (promo) { %><span class="badge badge-promo">-<%= Math.round((1 - p.price / p.old_price) * 100) %>%</span><% } %>
+      <% if (isNew && !promo) { %><span class="badge badge-new">Nouveau</span><% } %>
+      <% if (!p.available) { %><span class="badge badge-out">Épuisé</span><% } %>
+    </div>
+    <% if (p.available) { %><span class="card-cta"><%- icon('bag') %>Choisir ma pointure</span><% } %>
   </div>
   <div class="card-body">
     <span class="card-meta"><%= label(config.genders, p.gender) %> · <%= label(config.categories, p.category) %></span>
     <h3><%= p.name %></h3>
     <div class="price">
       <strong><%= formatPrice(p.price) %></strong>
-      <% if (p.old_price && p.old_price > p.price) { %><s><%= formatPrice(p.old_price) %></s><% } %>
+      <% if (promo) { %><s><%= formatPrice(p.old_price) %></s><% } %>
     </div>
+    <% if (avail.length) { %><div class="card-sizes"><% avail.slice(0, 7).forEach(s => { %><span><%= s %></span><% }) %><% if (avail.length > 7) { %><span>+<%= avail.length - 7 %></span><% } %></div><% } %>
   </div>
 </a>

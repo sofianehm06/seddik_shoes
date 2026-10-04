@@ -1,6 +1,7 @@
 <%- include('partials/head') %>
 <script>window.DELIVERY = <%- JSON.stringify(config.delivery).replace(/</g, '\\u003c') %>;</script>
 <div class="container section">
+  <div class="steps-bar"><span class="done"><b>✓</b>Panier</span><i></i><span class="on"><b>2</b>Livraison</span><i></i><span class=""><b>3</b>Confirmation</span></div>
   <h1>Finaliser ma commande</h1>
   <div class="checkout">
     <form class="panel" data-checkout novalidate>
@@ -41,8 +42,8 @@
       <label>Remarque (facultatif)<textarea name="note" rows="2" maxlength="500" placeholder="Horaires de disponibilité, précisions…"></textarea></label>
 
       <div class="errors" data-errors hidden></div>
-      <button class="btn btn-primary btn-lg btn-block" data-submit>Confirmer la commande</button>
-      <p class="muted small">Paiement en espèces à la livraison. Nous vous appellerons pour confirmer la commande.</p>
+      <button class="btn btn-accent btn-lg btn-block" data-submit>Confirmer la commande</button>
+      <p class="trust-line"><%- icon('shield') %>Paiement en espèces à la livraison. Nous vous appelons pour confirmer.</p>
     </form>
 
     <aside class="panel summary">

@@ -1,73 +1,145 @@
 <%- include('partials/head') %>
+
 <section class="hero">
+  <div class="hero-glow"></div><div class="hero-glow two"></div>
   <div class="container hero-inner">
-    <div>
-      <p class="eyebrow">Nouvelle collection</p>
-      <h1>Des chaussures pour toute la famille</h1>
-      <p>Homme, femme, enfant : baskets, sandales, claquettes, mocassins, bottes… Commandez en ligne et payez à la livraison, partout en Algérie.</p>
+    <div class="hero-anim">
+      <span class="pill"><span class="dot"><%- icon('flame') %></span>Nouvelle collection <%= new Date().getFullYear() %></span>
+      <h1>Marchez avec <span class="grad">style</span>,<br>partout en Algérie.</h1>
+      <p class="hero-lead">Baskets, sandales, claquettes, chaussures de ville… pour homme, femme et enfant. Vous payez seulement à la livraison.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="/boutique">Voir tous les produits</a>
-        <a class="btn btn-ghost" href="/boutique?promo=1">Les promos</a>
+        <a class="btn btn-accent btn-lg" href="/boutique">Découvrir la collection <%- icon('arrow', 'icon-arrow') %></a>
+        <a class="btn btn-light btn-lg" href="/boutique?promo=1">Voir les promos</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong data-count="58">58</strong><span>wilayas livrées</span></div>
+        <div><strong data-count="100" data-suffix="%">100%</strong><span>paiement à la livraison</span></div>
+        <div><strong data-count="7" data-suffix=" j">7 j</strong><span>pour échanger</span></div>
       </div>
     </div>
-    <img src="/placeholder.svg?c=baskets&color=orange" alt="" class="hero-img">
+
+    <div class="showcase" data-showcase>
+      <div class="showcase-ring"></div>
+      <% heroSlides.forEach((p, i) => { %>
+        <a class="slide<%= i === 0 ? ' active' : '' %>" href="/produit/<%= p.slug %>" tabindex="<%= i === 0 ? 0 : -1 %>">
+          <img src="<%= imageUrl(p) %>" alt="<%= p.name %>" <%= i ? 'loading="lazy"' : 'fetchpriority="high"' %>>
+          <span class="slide-info">
+            <span><small><%= label(config.genders, p.gender) %> · <%= label(config.categories, p.category) %></small><strong><%= p.name %></strong></span>
+            <span class="slide-price"><%= formatPrice(p.price) %></span>
+          </span>
+        </a>
+      <% }) %>
+      <div class="float-badge a"><span class="ico"><%- icon('truck') %></span><span><strong>Livraison rapide</strong>dans les 58 wilayas</span></div>
+      <div class="float-badge b"><span class="ico"><%- icon('cash') %></span><span><strong>Payez à la livraison</strong>aucun risque</span></div>
+      <% if (heroSlides.length > 1) { %>
+        <div class="showcase-dots"><% heroSlides.forEach((p, i) => { %><button class="<%= i === 0 ? 'active' : '' %>" aria-label="Produit <%= i + 1 %>"></button><% }) %></div>
+      <% } %>
+    </div>
   </div>
 </section>
 
-<section class="container section">
-  <div class="tiles">
-    <% [['homme','Homme','baskets','noir'],['femme','Femme','escarpins','rouge'],['garcon','Garçon','baskets','bleu'],['fille','Fille','ballerines','rose'],['bebe','Bébé','baskets','jaune']].forEach(([slug, name, cat, color]) => { %>
-      <a class="tile" href="/boutique?genre=<%= slug %>">
-        <img src="/placeholder.svg?c=<%= cat %>&color=<%= color %>" alt="">
-        <span><%= name %></span>
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <% const words = ['Homme', 'Femme', 'Enfant', 'Baskets', 'Sandales', 'Claquettes', 'Mocassins', 'Bottes']; %>
+    <% for (let k = 0; k < 2; k++) { words.forEach(w => { %><span><%= w %></span><span class="star">✦</span><% }) } %>
+  </div>
+</div>
+
+<section class="container section-lg">
+  <div class="section-head" data-reveal>
+    <div><p class="eyebrow">Nos rayons</p><h2>Pour toute la famille</h2></div>
+    <a class="link-arrow" href="/boutique">Tout le catalogue <%- icon('arrow') %></a>
+  </div>
+  <div class="bento">
+    <% tiles.forEach((t, i) => { %>
+      <a class="tile <%= i < 2 ? 'big' : 'small' %> tone-<%= i %>" href="/boutique?genre=<%= t.slug %>" data-reveal="zoom" style="--d: <%= i * 0.08 %>s">
+        <img src="<%= t.product ? imageUrl(t.product) : `/placeholder.svg?c=baskets&color=${['noir','rose','bleu','violet','jaune'][i]}&bg=none` %>" alt="" loading="lazy">
+        <span class="tile-body">
+          <span><small><%= i < 2 ? 'Collection' : 'Enfants' %></small><strong><%= t.label %></strong></span>
+          <span class="tile-go"><%- icon('arrow') %></span>
+        </span>
       </a>
     <% }) %>
   </div>
 </section>
 
-<% if (featured.length) { %>
-<section class="container section">
-  <div class="section-head"><h2>Nos coups de cœur</h2><a href="/boutique">Tout voir →</a></div>
-  <div class="grid"><% featured.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+<% if (latest.length) { %>
+<section class="container section-lg">
+  <div class="section-head" data-reveal>
+    <div><p class="eyebrow">Fraîchement arrivées</p><h2>Les nouveautés</h2></div>
+    <div class="rail-nav"><button data-rail-prev aria-label="Précédent"><%- icon('left') %></button><button data-rail-next aria-label="Suivant"><%- icon('right') %></button></div>
+  </div>
+  <div class="rail" data-rail>
+    <% latest.forEach((p, i) => { %><%- include('partials/product-card', { p, delay: Math.min(i, 4) * 0.07 }) %><% }) %>
+  </div>
 </section>
 <% } %>
 
-<section class="container section">
-  <h2>Acheter par type</h2>
-  <div class="chips">
+<% if (config.delivery.freeAbove) { %>
+<section class="container section-lg">
+  <div class="promo-band" data-reveal="zoom">
+    <div>
+      <p class="eyebrow" style="color: var(--gold)">Offre permanente</p>
+      <h2>Livraison offerte dès <span class="grad"><%= formatPrice(config.delivery.freeAbove) %></span></h2>
+      <p>Faites-vous plaisir (et toute la famille) : au-delà de ce montant, on vous livre gratuitement, partout en Algérie.</p>
+    </div>
+    <a class="btn btn-accent btn-lg" href="/boutique">J'en profite <%- icon('arrow', 'icon-arrow') %></a>
+  </div>
+</section>
+<% } %>
+
+<% if (featured.length) { %>
+<section class="container section-lg">
+  <div class="section-head" data-reveal>
+    <div><p class="eyebrow">Sélection</p><h2>Nos coups de cœur</h2></div>
+    <a class="link-arrow" href="/boutique">Tout voir <%- icon('arrow') %></a>
+  </div>
+  <div class="grid"><% featured.forEach((p, i) => { %><%- include('partials/product-card', { p, delay: (i % 4) * 0.07 }) %><% }) %></div>
+</section>
+<% } %>
+
+<section class="container section-lg">
+  <div class="section-head" data-reveal><div><p class="eyebrow">Trouvez votre bonheur</p><h2>Acheter par type</h2></div></div>
+  <div class="chips" data-reveal>
     <% config.categories.forEach(c => { %><a class="chip" href="/boutique?type=<%= c.slug %>"><%= c.label %></a><% }) %>
   </div>
 </section>
 
 <% if (promos.length) { %>
-<section class="container section">
-  <div class="section-head"><h2>Promotions</h2><a href="/boutique?promo=1">Toutes les promos →</a></div>
-  <div class="grid"><% promos.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
+<section class="container section-lg">
+  <div class="section-head" data-reveal>
+    <div><p class="eyebrow">Petits prix</p><h2>Promotions du moment</h2></div>
+    <a class="link-arrow" href="/boutique?promo=1">Toutes les promos <%- icon('arrow') %></a>
+  </div>
+  <div class="grid"><% promos.forEach((p, i) => { %><%- include('partials/product-card', { p, delay: (i % 4) * 0.07 }) %><% }) %></div>
 </section>
 <% } %>
 
-<section class="container section">
-  <div class="section-head"><h2>Nouveautés</h2><a href="/boutique?tri=recent">Tout voir →</a></div>
-  <div class="grid"><% latest.forEach(p => { %><%- include('partials/product-card', { p }) %><% }) %></div>
-</section>
-
-<section class="container section">
+<section class="container section-lg">
+  <div class="section-head" data-reveal><div><p class="eyebrow">Pourquoi nous</p><h2>Achetez l'esprit tranquille</h2></div></div>
   <div class="perks">
-    <div><strong>🚚 Livraison partout</strong><span>Dans les 58 wilayas, à domicile ou en point relais.</span></div>
-    <div><strong>💵 Paiement à la livraison</strong><span>Vous payez seulement quand vous recevez.</span></div>
-    <div><strong>📍 Basés à <%= config.shop.city %></strong><span>Livraison rapide à <%= config.shop.city %>, expédition partout ailleurs.</span></div>
-    <div><strong>🔁 Échange facile</strong><span>Pas la bonne pointure ? Échange sous 7 jours.</span></div>
-  </div>
-</section>
-
-<% if (stores.length) { %>
-<section class="container section">
-  <div class="section-head"><h2>Points de retrait</h2><a href="/boutiques">Toutes les adresses →</a></div>
-  <div class="stores">
-    <% stores.slice(0, 3).forEach(s => { %>
-      <div class="store"><h3><%= s.name %></h3><p>📍 <%= s.address %></p><% if (s.hours) { %><p>🕘 <%= s.hours %></p><% } %></div>
+    <% [['truck', 'Livraison partout', 'Dans les 58 wilayas, à domicile ou en point relais.'],
+        ['cash', 'Paiement à la livraison', 'Vous payez uniquement quand vous recevez votre colis.'],
+        ['refresh', 'Échange facile', 'Pas la bonne pointure ? On vous l\'échange sous 7 jours.'],
+        ['support', 'À votre écoute', 'Une question ? On vous répond vite sur WhatsApp.']].forEach(([ic, t, d], i) => { %>
+      <div class="perk" data-reveal style="--d: <%= i * 0.08 %>s"><span class="ico"><%- icon(ic) %></span><strong><%= t %></strong><span><%= d %></span></div>
     <% }) %>
   </div>
 </section>
-<% } %>
+
+<section class="container section-lg">
+  <div class="cta-card" data-reveal>
+    <div>
+      <p class="eyebrow">Besoin d'aide ?</p>
+      <h2>Une pointure, une couleur, une question ?</h2>
+      <p>Notre équipe vous conseille avec plaisir. Écrivez-nous sur WhatsApp ou appelez-nous, on vous répond rapidement.</p>
+      <div class="cta-actions">
+        <a class="btn btn-whatsapp btn-lg" href="https://wa.me/<%= config.shop.whatsapp %>" target="_blank" rel="noopener"><%- icon('whatsapp') %>Écrire sur WhatsApp</a>
+        <a class="btn btn-ghost btn-lg" href="tel:<%= config.shop.phones[0].replace(/\s/g, '') %>"><%- icon('phone') %><%= config.shop.phones[0] %></a>
+      </div>
+    </div>
+    <div class="cta-visual"><%- icon('whatsapp') %></div>
+  </div>
+</section>
+
 <%- include('partials/foot') %>

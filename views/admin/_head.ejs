@@ -12,15 +12,17 @@
   <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/img/icon-192.png">
   <link rel="manifest" href="/admin.webmanifest">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/css/style.css?v=6">
+  <link rel="stylesheet" href="/css/admin.css?v=3">
 </head>
 <body class="admin<%= csrf ? ' has-tabbar' : '' %>">
   <% if (csrf) { %>
   <% const is = (p) => p === '/admin' ? path === '/admin' : path.startsWith(p); %>
   <% const badge = (n) => n ? `<span class="nav-badge">${Number(n)}</span>` : ''; %>
   <header class="admin-header">
-    <a href="/admin" class="logo logo-light"><img src="/img/logo.svg" alt="" width="28" height="28"><span>Admin</span></a>
+    <a href="/admin" class="logo logo-light"><img src="/img/logo.svg" alt="" width="30" height="30"><span class="logo-text">Admin</span></a>
     <button class="admin-menu-toggle" type="button" aria-label="Menu" aria-expanded="false" data-admin-menu-toggle>☰</button>
     <nav data-admin-menu>
       <a href="/admin" class="<%= is('/admin') ? 'active' : '' %>">Tableau de bord</a>

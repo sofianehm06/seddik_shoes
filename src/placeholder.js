@@ -38,9 +38,13 @@ function colorHex(name) {
   return COLORS[key] || '#475569';
 }
 
-function placeholderSvg(category, color) {
+// transparent = sans fond (la chaussure seule, posée sur le fond de la carte).
+function placeholderSvg(category, color, transparent = false) {
   const shape = SHAPES[CATEGORY_SHAPE[category] || 'sneaker'].replaceAll('"C"', `"${colorHex(color)}"`);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -90 400 400"><rect y="-90" width="400" height="400" fill="#f1f5f9"/><ellipse cx="200" cy="188" rx="160" ry="10" fill="#e2e8f0"/>${shape}</svg>`;
+  const bg = transparent
+    ? '<ellipse cx="200" cy="190" rx="150" ry="9" fill="#000" opacity=".12"/>'
+    : '<rect y="-90" width="400" height="400" fill="#f1f5f9"/><ellipse cx="200" cy="188" rx="160" ry="10" fill="#e2e8f0"/>';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -90 400 400">${bg}${shape}</svg>`;
 }
 
 module.exports = { placeholderSvg, colorHex };

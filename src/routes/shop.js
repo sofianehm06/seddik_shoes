@@ -16,10 +16,19 @@ module.exports = function shopRoutes({ repo, notifier }) {
   });
 
   router.get('/', (req, res) => {
+    const featured = repo.listProducts({ featured: true, perPage: 8 }).products;
+    const latest = repo.listProducts({ perPage: 10 }).products;
     res.render('home', {
-      featured: repo.listProducts({ featured: true, perPage: 8 }).products,
+      featured,
+      latest,
+      heroSlides: (featured.length ? featured : latest).slice(0, 4),
+      // Pour chaque rayon : de préférence un produit avec une vraie photo (et pas des chaussettes).
+      tiles: config.genders.map((g) => {
+        const list = repo.listProducts({ gender: g.slug, perPage: 20 }).products;
+        const product = list.find((p) => p.images.length) || list.find((p) => p.category !== 'accessoires') || list[0];
+        return { ...g, product };
+      }),
       promos: repo.listProducts({ promo: true, perPage: 4 }).products,
-      latest: repo.listProducts({ perPage: 8 }).products,
       stores: repo.listStores(),
     });
   });
@@ -154,7 +163,7 @@ module.exports = function shopRoutes({ repo, notifier }) {
   router.get('/boutiques', (req, res) => res.render('stores', { title: 'Points de retrait', stores: repo.listStores() }));
 
   router.get('/placeholder.svg', (req, res) => {
-    res.type('image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(placeholderSvg(clean(req.query.c, 30), clean(req.query.color, 30)));
+    res.type('image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(placeholderSvg(clean(req.query.c, 30), clean(req.query.color, 30), req.query.bg === 'none'));
   });
 
   return router;

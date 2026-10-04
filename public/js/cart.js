@@ -22,9 +22,15 @@ window.Cart = (function () {
     write(items);
   }
   function count() { return read().reduce(function (n, i) { return n + i.qty; }, 0); }
+  var last = null;
   function updateBadge() {
     var n = count();
-    document.querySelectorAll('[data-cart-count]').forEach(function (el) { el.textContent = n; el.hidden = n === 0; });
+    document.querySelectorAll('[data-cart-count]').forEach(function (el) {
+      el.textContent = n;
+      el.hidden = n === 0;
+      if (last !== null && n > last) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+    });
+    last = n;
   }
   // Récupère les infos à jour (prix, stock, image) auprès du serveur et nettoie le panier.
   function refresh() {

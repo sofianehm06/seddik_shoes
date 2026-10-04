@@ -8,6 +8,7 @@ const { createRepo } = require('./repo');
 const { seedDemo } = require('./seed');
 const { createNotifier } = require('./notify');
 const { formatPrice, label, hashPassword } = require('./lib');
+const { icon } = require('./icons');
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 
@@ -16,7 +17,7 @@ const ROOT = path.join(__dirname, '..');
 function imageUrl(product, index = 0) {
   const img = product.images && product.images[index];
   if (img) return `/uploads/${img.path}`;
-  return `/placeholder.svg?c=${encodeURIComponent(product.category)}&color=${encodeURIComponent(product.color || '')}`;
+  return `/placeholder.svg?c=${encodeURIComponent(product.category)}&color=${encodeURIComponent(product.color || '')}&bg=none`;
 }
 
 function createApp(options = {}) {
@@ -66,6 +67,7 @@ function createApp(options = {}) {
   app.locals.formatPrice = formatPrice;
   app.locals.label = label;
   app.locals.imageUrl = imageUrl;
+  app.locals.icon = icon;
   app.use((req, res, next) => {
     res.locals.path = req.path;
     res.locals.query = req.query;

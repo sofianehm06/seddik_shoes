@@ -2,42 +2,59 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title><%= title ? `${title} | ${config.shop.name}` : `${config.shop.name} — Chaussures homme, femme et enfant` %></title>
-  <meta name="description" content="<%= typeof description !== 'undefined' ? description : `${config.shop.name} : chaussures homme, femme et enfant, sandales, claquettes, baskets… Livraison dans les 58 wilayas, paiement à la livraison.` %>">
+  <meta name="description" content="<%= typeof description !== 'undefined' && description ? description : `${config.shop.name} : chaussures homme, femme et enfant, baskets, sandales, claquettes… Livraison dans les 58 wilayas, paiement à la livraison.` %>">
+  <meta property="og:title" content="<%= title || config.shop.name %>">
+  <meta property="og:site_name" content="<%= config.shop.name %>">
   <link rel="icon" href="/img/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/img/icon-192.png">
   <link rel="manifest" href="/site.webmanifest">
-  <meta name="theme-color" content="#ea580c">
-  <link rel="stylesheet" href="/css/style.css">
+  <meta name="theme-color" content="#17130f">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="/css/style.css?v=6">
+  <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
-  <div class="topbar">
-    <span>🚚 Livraison 58 wilayas</span>
-    <span>💵 Paiement à la livraison</span>
-    <span>🔁 Échange sous 7 jours</span>
-  </div>
-  <header class="header">
-    <div class="container header-inner">
-      <button class="menu-toggle" aria-label="Menu" aria-expanded="false" data-menu-toggle>☰</button>
-      <a href="/" class="logo"><img src="/img/logo.svg" alt="" width="34" height="34"><span><%= config.shop.name %></span></a>
-      <form class="search" action="/boutique" role="search">
-        <input type="search" name="q" placeholder="Rechercher une chaussure, une marque…" value="<%= path === '/boutique' && query.q ? query.q : '' %>" aria-label="Rechercher">
-        <button aria-label="Rechercher">🔍</button>
-      </form>
-      <a href="/panier" class="cart-link" aria-label="Panier">🛒<span class="cart-count" data-cart-count hidden>0</span></a>
+  <% const perks = [['truck', 'Livraison dans les 58 wilayas'], ['cash', 'Paiement à la livraison'], ['refresh', 'Échange sous 7 jours'], ['shield', 'Produits vérifiés'], ['support', 'Service client 7j/7 sur WhatsApp']]; %>
+  <div class="announce" aria-label="Avantages">
+    <div class="announce-track">
+      <% for (let k = 0; k < 2; k++) { perks.forEach(([ic, txt]) => { %><span><%- icon(ic) %><%= txt %></span><% }) } %>
     </div>
-    <nav class="nav" data-menu>
-      <div class="container nav-inner">
+  </div>
+  <header class="site-header" data-header>
+    <div class="container header-inner">
+      <button class="icon-btn menu-toggle" aria-label="Menu" data-open="menu"><%- icon('menu') %></button>
+      <a href="/" class="logo" aria-label="<%= config.shop.name %> — accueil">
+        <img src="/img/logo.svg" alt="" width="38" height="38">
+        <span class="logo-text"><%= config.shop.name.split(' ')[0] %><em><%= config.shop.name.split(' ').slice(1).join(' ') %></em></span>
+      </a>
+      <nav class="main-nav" aria-label="Rayons">
         <% config.genders.forEach(g => { %>
           <a href="/boutique?genre=<%= g.slug %>" class="<%= query.genre === g.slug ? 'active' : '' %>"><%= g.label %></a>
         <% }) %>
-        <a href="/boutique?type=sandales">Sandales</a>
-        <a href="/boutique?type=claquettes">Claquettes</a>
-        <a href="/boutique?promo=1" class="nav-promo">Promos</a>
-        <% if (typeof hasStores !== 'undefined' && hasStores) { %><a href="/boutiques" class="nav-secondary">Points de retrait</a><% } %>
-        <a href="/suivi" class="nav-secondary">Suivre ma commande</a>
+        <a href="/boutique?type=sandales" class="<%= query.type === 'sandales' ? 'active' : '' %>">Sandales</a>
+        <a href="/boutique?promo=1" class="nav-promo <%= query.promo ? 'active' : '' %>">Promos</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" aria-label="Rechercher" data-search-toggle><%- icon('search') %></button>
+        <a href="/suivi" class="icon-btn" aria-label="Suivre ma commande" title="Suivre ma commande"><%- icon('package') %></a>
+        <a href="/panier" class="icon-btn" aria-label="Panier" data-open="cart"><%- icon('bag') %><span class="cart-count" data-cart-count hidden>0</span></a>
       </div>
-    </nav>
+    </div>
+    <div class="search-panel" data-search-panel>
+      <div class="container">
+        <form class="search-form" action="/boutique" role="search">
+          <%- icon('search') %>
+          <input type="search" name="q" placeholder="Baskets, sandales, claquettes, une marque…" value="<%= path === '/boutique' && query.q ? query.q : '' %>" aria-label="Rechercher">
+          <button class="btn btn-primary">Rechercher</button>
+        </form>
+        <div class="search-tags">
+          <% ['Baskets', 'Sandales', 'Claquettes', 'Mocassins', 'Escarpins', 'Bottes'].forEach(t => { %><a href="/boutique?q=<%= encodeURIComponent(t.slice(0, -1)) %>"><%= t %></a><% }) %>
+        </div>
+      </div>
+    </div>
   </header>
   <main>
