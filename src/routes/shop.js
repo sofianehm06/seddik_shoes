@@ -26,7 +26,8 @@ module.exports = function shopRoutes({ repo, notifier }) {
       tiles: config.genders.map((g) => {
         const list = repo.listProducts({ gender: g.slug, perPage: 20 }).products;
         const product = list.find((p) => p.images.length) || list.find((p) => p.category !== 'accessoires') || list[0];
-        return { ...g, product };
+        const photo = repo.getSetting(`tile_${g.slug}`);
+        return { ...g, product, photo: photo ? `/uploads/${photo}` : null };
       }),
       promos: repo.listProducts({ promo: true, perPage: 4 }).products,
       stores: repo.listStores(),

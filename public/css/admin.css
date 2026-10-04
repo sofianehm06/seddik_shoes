@@ -120,3 +120,10 @@ tr.clickable:hover { background: #fafaf9; }
 .backup-reminder { background: #fffbeb; border-color: #fde68a; }
 .backup-facts { list-style: none; padding: 0; margin: 1rem 0 1.4rem; display: grid; gap: .4rem; }
 .admin main { animation: none; }
+.tiles-admin { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 1.2rem; }
+.tile-admin { margin: 0; display: flex; flex-direction: column; gap: .6rem; }
+.tile-preview { position: relative; aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; background: var(--sand); display: grid; place-items: center; }
+.tile-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tile-preview strong { position: absolute; left: .7rem; bottom: .6rem; color: #fff; font-family: var(--font-display); font-size: 1.2rem; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+.tile-preview:not(:has(img)) strong { color: var(--ink); text-shadow: none; }
+.small-label { margin: 0; font-size: .85rem; }

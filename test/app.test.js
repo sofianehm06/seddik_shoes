@@ -381,3 +381,22 @@ test("la sauvegarde télécharge un zip avec la base et les photos", async () =>
   assert.ok(app.locals.repo.getSetting('last_backup'));
   assert.equal((await fetch(base + '/admin/sauvegarde/telecharger', { redirect: 'manual' })).status, 302);
 });
+
+test("l'admin choisit la photo d'un rayon de l'accueil", async () => {
+  const { cookie, csrf } = await login();
+  const fd = new FormData();
+  fd.set('tile_femme', new Blob([Buffer.from('89504e470d0a1a0a', 'hex')], { type: 'image/png' }), 'femme.png');
+  const res = await fetch(`${base}/admin/apparence?_csrf=${csrf}`, { method: 'POST', headers: { cookie }, body: fd, redirect: 'manual' });
+  assert.equal(res.status, 302);
+  const file = app.locals.repo.getSetting('tile_femme');
+  assert.ok(file && fs.existsSync(path.join(tmp, file)));
+  const home = await (await fetch(base + '/')).text();
+  assert.ok(home.includes(`/uploads/${file}`));
+  assert.equal((await fetch(`${base}/admin/apparence`, { method: 'POST', headers: { cookie }, body: new FormData(), redirect: 'manual' })).status, 403);
+  await fetch(`${base}/admin/apparence/femme/supprimer`, {
+    method: 'POST', headers: { cookie, 'Content-Type': 'application/x-www-form-urlencoded' }, body: `_csrf=${csrf}`, redirect: 'manual',
+  });
+  assert.equal(app.locals.repo.getSetting('tile_femme'), '');
+  await new Promise((r) => setTimeout(r, 50)); // la suppression du fichier se fait en arrière-plan
+  assert.ok(!fs.existsSync(path.join(tmp, file)));
+});

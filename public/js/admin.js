@@ -55,11 +55,9 @@ document.addEventListener('submit', function (e) {
 
 // Photos : redimensionnées dans le navigateur avant l'envoi (photos de téléphone souvent > 5 Mo).
 (function () {
-  var input = document.querySelector('input[type=file][name=images]');
-  if (!input || typeof DataTransfer === 'undefined') return;
+  var inputs = document.querySelectorAll('input[type=file][accept^="image"]');
+  if (!inputs.length || typeof DataTransfer === 'undefined') return;
   var MAX = 1600;
-  var hint = document.createElement('small');
-  input.insertAdjacentElement('afterend', hint);
   function resize(file) {
     return new Promise(function (resolve) {
       if (!/^image\//.test(file.type)) return resolve(null);
@@ -81,6 +79,9 @@ document.addEventListener('submit', function (e) {
       img.src = url;
     });
   }
+  Array.prototype.forEach.call(inputs, function (input) {
+  var hint = document.createElement('small');
+  input.insertAdjacentElement('afterend', hint);
   input.addEventListener('change', function () {
     var files = Array.prototype.slice.call(input.files);
     if (!files.length) return;
@@ -92,5 +93,6 @@ document.addEventListener('submit', function (e) {
       input.files = dt.files;
       hint.textContent = dt.files.length + ' photo(s) prête(s)' + (skipped ? ' — ' + skipped + ' fichier(s) ignoré(s) (format non reconnu)' : '') + '.';
     });
+  });
   });
 })();

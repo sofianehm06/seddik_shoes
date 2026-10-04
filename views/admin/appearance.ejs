@@ -1,0 +1,35 @@
+<%- include('_head') %>
+<h1>Apparence</h1>
+<p class="muted">Choisis la photo de chaque rayon affiché sur l'accueil (section « Pour toute la famille »). Sans photo, le site utilise celle d'un de tes produits.</p>
+<% if (saved) { %><p class="success">Photos enregistrées ✔ <a href="/" target="_blank">Voir l'accueil ↗</a></p><% } %>
+<% if (error) { %><p class="alert"><%= error %></p><% } %>
+
+<form method="post" enctype="multipart/form-data" action="/admin/apparence?_csrf=<%= csrf %>">
+  <div class="tiles-admin">
+    <% tiles.forEach(t => { %>
+      <div class="panel tile-admin">
+        <div class="tile-preview">
+          <% if (t.file) { %><img src="/uploads/<%= t.file %>" alt="<%= t.label %>"><% } else { %><span class="muted small">Pas encore de photo</span><% } %>
+          <strong><%= t.label %></strong>
+        </div>
+        <label class="small-label">Nouvelle photo<input type="file" name="tile_<%= t.slug %>" accept="image/jpeg,image/png,image/webp"></label>
+        <% if (t.file) { %><button type="submit" form="del-<%= t.slug %>" class="btn btn-ghost btn-sm" data-confirm="Retirer la photo du rayon <%= t.label %> ?">Retirer</button><% } %>
+      </div>
+    <% }) %>
+  </div>
+  <button class="btn btn-primary btn-lg">Enregistrer les photos</button>
+</form>
+<% tiles.forEach(t => { if (t.file) { %>
+  <form method="post" id="del-<%= t.slug %>" action="/admin/apparence/<%= t.slug %>/supprimer"><input type="hidden" name="_csrf" value="<%= csrf %>"></form>
+<% } }) %>
+
+<section class="panel" style="margin-top:1.5rem">
+  <h2 class="h3">Conseils photo</h2>
+  <ul class="small" style="margin:0;padding-left:1.1rem;line-height:1.8">
+    <li>Format <strong>vertical ou carré</strong>, chaussures bien visibles au centre (le bas de la photo est couvert par le nom du rayon).</li>
+    <li>Idéal : tes propres photos (chaussures portées, en boutique, en lumière naturelle).</li>
+    <li>Sinon, photos gratuites et libres de droits : <strong>unsplash.com</strong> ou <strong>pexels.com</strong>. Cherche par exemple « men shoes », « women heels », « kids sneakers », « baby shoes ».</li>
+    <li>Les photos sont réduites automatiquement avant l'envoi.</li>
+  </ul>
+</section>
+<%- include('_foot') %>

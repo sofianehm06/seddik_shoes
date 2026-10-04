@@ -407,6 +407,52 @@ module.exports = function adminRoutes({ repo, db, secret, uploadsDir, notifier }
     res.redirect('/admin/boutiques');
   });
 
+  // --- Apparence : photos des rayons sur l'accueil ---
+  const tileFields = config.genders.map((g) => ({ name: `tile_${g.slug}`, maxCount: 1 }));
+
+  router.get('/apparence', (req, res) => {
+    const tiles = config.genders.map((g) => ({ ...g, file: repo.getSetting(`tile_${g.slug}`) || '' }));
+    res.render('admin/appearance', { title: 'Apparence', tiles, saved: req.query.ok === '1', error: req.query.erreur || null });
+  });
+
+  router.post(
+    '/apparence',
+    (req, res, next) =>
+      upload.fields(tileFields)(req, res, (err) => {
+        if (!err) return next();
+        if (!(err instanceof multer.MulterError)) return next(err);
+        for (const list of Object.values(req.files || {})) list.forEach((f) => removeUpload(f.filename));
+        res.redirect(`/admin/apparence?erreur=${encodeURIComponent(err.code === 'LIMIT_FILE_SIZE' ? 'Une photo dépasse 5 Mo.' : 'Envoi des photos impossible.')}`);
+      }),
+    (req, res, next) => {
+      // checkCsrf attend un tableau de fichiers pour pouvoir les supprimer en cas de refus.
+      req.files = Object.values(req.files || {}).flat();
+      next();
+    },
+    checkCsrf,
+    (req, res) => {
+      for (const f of req.files) {
+        const slug = f.fieldname.replace(/^tile_/, '');
+        if (!config.genders.some((g) => g.slug === slug)) {
+          removeUpload(f.filename);
+          continue;
+        }
+        removeUpload(repo.getSetting(`tile_${slug}`));
+        repo.setSetting(`tile_${slug}`, f.filename);
+      }
+      res.redirect('/admin/apparence?ok=1');
+    }
+  );
+
+  router.post('/apparence/:slug/supprimer', (req, res) => {
+    const slug = String(req.params.slug);
+    if (config.genders.some((g) => g.slug === slug)) {
+      removeUpload(repo.getSetting(`tile_${slug}`));
+      repo.setSetting(`tile_${slug}`, '');
+    }
+    res.redirect('/admin/apparence');
+  });
+
   // --- Sauvegarde ---
   router.get('/sauvegarde', (req, res) => {
     const photos = fs.existsSync(uploadsDir) ? fs.readdirSync(uploadsDir).filter((f) => !f.startsWith('.')) : [];

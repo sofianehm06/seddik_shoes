@@ -53,7 +53,7 @@
   <div class="bento">
     <% tiles.forEach((t, i) => { %>
       <a class="tile <%= i < 2 ? 'big' : 'small' %> tone-<%= i %>" href="/boutique?genre=<%= t.slug %>" data-reveal="zoom" style="--d: <%= i * 0.08 %>s">
-        <img src="<%= t.product ? imageUrl(t.product) : `/placeholder.svg?c=baskets&color=${['noir','rose','bleu','violet','jaune'][i]}&bg=none` %>" alt="" loading="lazy">
+        <img src="<%= t.photo ? t.photo : t.product ? imageUrl(t.product) : `/placeholder.svg?c=baskets&color=${['noir','rose','bleu','violet','jaune'][i]}&bg=none` %>" alt="" loading="lazy">
         <span class="tile-body">
           <span><small><%= i < 2 ? 'Collection' : 'Enfants' %></small><strong><%= t.label %></strong></span>
           <span class="tile-go"><%- icon('arrow') %></span>
