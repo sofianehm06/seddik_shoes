@@ -17,7 +17,7 @@
       </div>
       <div>
         <h4>Contact</h4>
-        <a href="tel:<%= config.shop.phone.replace(/\s/g, '') %>">📞 <%= config.shop.phone %></a>
+        <% config.shop.phones.forEach(p => { %><a href="tel:<%= p.replace(/\s/g, '') %>">📞 <%= p %></a><% }) %>
         <a href="mailto:<%= config.shop.email %>">✉️ <%= config.shop.email %></a>
         <% if (config.shop.facebook) { %><a href="<%= config.shop.facebook %>" rel="noopener" target="_blank">Facebook</a><% } %>
         <% if (config.shop.instagram) { %><a href="<%= config.shop.instagram %>" rel="noopener" target="_blank">Instagram</a><% } %>

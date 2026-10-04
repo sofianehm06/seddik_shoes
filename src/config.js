@@ -4,11 +4,24 @@ module.exports = {
     name: process.env.SHOP_NAME || 'Bougie Shoes',
     slogan: 'Chaussures pour toute la famille, depuis Béjaïa vers les 58 wilayas.',
     city: 'Béjaïa',
-    phone: process.env.SHOP_PHONE || '0555 00 00 00',
-    whatsapp: process.env.SHOP_WHATSAPP || '213555000000', // format international, sans "+"
-    email: process.env.SHOP_EMAIL || 'contact@bougie-shoes.dz',
+    phones: (process.env.SHOP_PHONES || '0562 08 95 92,0674 90 83 55,0779 22 38 50').split(',').map((p) => p.trim()),
+    whatsapp: process.env.SHOP_WHATSAPP || '213562089592', // bouton WhatsApp du site : format international, sans "+"
+    email: process.env.SHOP_EMAIL || 'shoesbougie@gmail.com',
     facebook: process.env.SHOP_FACEBOOK || '',
     instagram: process.env.SHOP_INSTAGRAM || '',
+  },
+
+  // E-mail envoyé à chaque nouvelle commande (voir README > Notifications par e-mail).
+  notifications: {
+    to: process.env.NOTIFY_EMAIL || process.env.SHOP_EMAIL || 'shoesbougie@gmail.com',
+    smtp: {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT) || 465,
+      user: process.env.SMTP_USER || '',
+      pass: process.env.SMTP_PASS || '',
+    },
+    // Adresse du site, pour le lien vers la commande dans l'e-mail (ex : https://bougieshoes.com).
+    siteUrl: (process.env.SITE_URL || '').replace(/\/$/, ''),
   },
 
   currency: 'DA',

@@ -7,7 +7,7 @@ const { placeholderSvg } = require('../placeholder');
 const isSlug = (list, value) => list.some((x) => x.slug === value);
 const clean = (value, max = 200) => String(value ?? '').trim().slice(0, max);
 
-module.exports = function shopRoutes({ repo }) {
+module.exports = function shopRoutes({ repo, notifier }) {
   const router = express.Router();
 
   router.use((req, res, next) => {
@@ -124,6 +124,10 @@ module.exports = function shopRoutes({ repo }) {
         note: clean(body.note, 500),
         items,
       });
+      // L'e-mail part en arrière-plan : une panne d'envoi ne doit jamais bloquer la commande du client.
+      if (notifier?.enabled) {
+        notifier.newOrder(repo.getOrder(order.id)).catch((err) => console.error('Notification e-mail échouée :', err.message));
+      }
       res.json({ ref: order.ref, redirect: `/commande/confirmation?ref=${order.ref}&tel=${phone}` });
     } catch (err) {
       if (err instanceof OrderError) return res.status(409).json({ errors: [err.message] });

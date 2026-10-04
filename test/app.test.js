@@ -288,3 +288,70 @@ test('pages admin fournisseurs, à préparer et comptes', async () => {
   const orderPage = await (await fetch(`${base}/admin/commandes/${o.id}`, { headers: { cookie } })).text();
   assert.match(orderPage, /WhatsApp → Ahmed Chaussures/);
 });
+
+test('un e-mail est envoyé à chaque nouvelle commande', async () => {
+  const sent = [];
+  const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'seddik-mail-'));
+  const app2 = createApp({
+    dbFile: ':memory:',
+    uploadsDir: tmp2,
+    secret: 's',
+    adminPassword: 'motdepasse',
+    mailTransport: { sendMail: async (m) => sent.push(m) },
+  });
+  const srv = await new Promise((resolve) => {
+    const s = app2.listen(0, () => resolve(s));
+  });
+  try {
+    const repo = app2.locals.repo;
+    const supplierId = repo.saveSupplier({ name: 'Fournisseur Mail' });
+    const id = repo.saveProduct({
+      name: 'Sandale <Test>', gender: 'femme', category: 'sandales', price: 3000, active: true,
+      supplier_id: supplierId, commission_type: 'percent', commission_value: 10, sizes: [{ size: '38', stock: null }],
+    });
+    const res = await fetch(`http://127.0.0.1:${srv.address().port}/api/commande`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Nadia Test', phone: '0770123456', deliveryMode: 'domicile', wilaya: 'Béjaïa', address: 'Rue A', items: [{ productId: id, size: '38', qty: 2 }] }),
+    });
+    const { ref } = await res.json();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].to, 'shoesbougie@gmail.com');
+    assert.match(sent[0].subject, new RegExp(ref));
+    assert.match(sent[0].text, /Nadia Test/);
+    assert.match(sent[0].text, /Ta commission : 600 DA/);
+    assert.match(sent[0].html, /Sandale &lt;Test&gt;/);
+  } finally {
+    srv.close();
+    fs.rmSync(tmp2, { recursive: true, force: true });
+  }
+});
+
+test("une panne d'envoi d'e-mail ne bloque pas la commande", async () => {
+  const tmp3 = fs.mkdtempSync(path.join(os.tmpdir(), 'seddik-mail-'));
+  const app3 = createApp({
+    dbFile: ':memory:', uploadsDir: tmp3, secret: 's', adminPassword: 'x',
+    mailTransport: { sendMail: async () => { throw new Error('SMTP down'); } },
+  });
+  const srv = await new Promise((resolve) => {
+    const s = app3.listen(0, () => resolve(s));
+  });
+  const errorLog = console.error;
+  console.error = () => {};
+  try {
+    const p = app3.locals.repo.listProducts().products.find((x) => x.available);
+    const size = p.sizes.find((s) => s.stock !== 0).size;
+    const res = await fetch(`http://127.0.0.1:${srv.address().port}/api/commande`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Omar Test', phone: '0770123457', deliveryMode: 'stopdesk', wilaya: 'Oran', items: [{ productId: p.id, size, qty: 1 }] }),
+    });
+    assert.equal(res.status, 200);
+    await new Promise((r) => setTimeout(r, 20));
+  } finally {
+    console.error = errorLog;
+    srv.close();
+    fs.rmSync(tmp3, { recursive: true, force: true });
+  }
+});

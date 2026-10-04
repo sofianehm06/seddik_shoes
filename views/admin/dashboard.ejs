@@ -6,6 +6,16 @@
   <a class="kpi kpi-accent" href="/admin/comptes"><span>Tes gains ce mois</span><strong><%= formatPrice(stats.earnings.total) %></strong></a>
   <div class="kpi"><span>Ventes livrées ce mois</span><strong><%= formatPrice(stats.earnings.sales) %></strong></div>
 </div>
+<% if (notify.result === 'ok') { %><p class="success">E-mail de test envoyé à <%= notify.to %> ✔ Vérifie ta boîte (et les spams).</p><% } %>
+<% if (notify.result === 'erreur') { %><p class="alert">L'e-mail de test n'est pas parti. Vérifie SMTP_USER et SMTP_PASS (mot de passe d'application Gmail) dans les réglages de l'hébergeur.</p><% } %>
+<div class="notify-bar panel">
+  <% if (notify.enabled) { %>
+    <span>📧 Notifications de commande envoyées à <strong><%= notify.to %></strong></span>
+    <form method="post" action="/admin/test-email"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost btn-sm">Envoyer un e-mail de test</button></form>
+  <% } else { %>
+    <span>📧 Notifications e-mail <strong>désactivées</strong> : ajoute SMTP_USER et SMTP_PASS dans les réglages de l'hébergeur (voir le README).</span>
+  <% } %>
+</div>
 <div class="two-cols">
   <section class="panel">
     <div class="section-head"><h2 class="h3">Dernières commandes</h2><a href="/admin/commandes">Toutes →</a></div>

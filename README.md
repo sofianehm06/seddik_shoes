@@ -84,8 +84,32 @@ Variables d'environnement utiles :
 | `SESSION_SECRET` | Secret de signature des sessions (généré automatiquement sinon) |
 | `DB_FILE` | Chemin de la base SQLite (`data/boutique.db` par défaut) |
 | `UPLOADS_DIR` | Dossier des photos produits (`uploads/` par défaut) |
-| `SHOP_NAME`, `SHOP_PHONE`, `SHOP_WHATSAPP`, `SHOP_EMAIL`, `SHOP_FACEBOOK`, `SHOP_INSTAGRAM` | Infos de la boutique |
+| `SHOP_NAME`, `SHOP_PHONES` (séparés par des virgules), `SHOP_WHATSAPP`, `SHOP_EMAIL`, `SHOP_FACEBOOK`, `SHOP_INSTAGRAM` | Infos de la boutique |
+| `SMTP_USER`, `SMTP_PASS` | Compte Gmail qui envoie les notifications de commande (voir ci-dessous) |
+| `NOTIFY_EMAIL` | Adresse qui reçoit les notifications (par défaut `shoesbougie@gmail.com`) |
+| `SITE_URL` | Adresse du site, ex. `https://bougieshoes.com` (pour le lien « Ouvrir la commande » dans l'e-mail) |
+| `SMTP_HOST`, `SMTP_PORT` | Autre serveur d'envoi si besoin (par défaut `smtp.gmail.com`, `465`) |
 | `SEED_DEMO=0` | Ne pas créer les données de démonstration |
+
+## Notifications par e-mail
+
+À chaque nouvelle commande, un e-mail part vers `shoesbougie@gmail.com` avec le client, le téléphone,
+l'adresse, les articles (et leur fournisseur), le total et ta commission, plus un bouton « Ouvrir la commande ».
+Sur le téléphone, active les notifications de l'appli Gmail pour être prévenu tout de suite.
+
+Gmail n'accepte pas le mot de passe normal pour envoyer depuis un site : il faut un **mot de passe d'application**.
+
+1. Connecte-toi à `shoesbougie@gmail.com` → https://myaccount.google.com/security
+2. Active la **validation en deux étapes** (obligatoire).
+3. Va sur https://myaccount.google.com/apppasswords → nom : « Site Bougie Shoes » → **Créer**.
+4. Google affiche 16 lettres : copie-les.
+5. Chez l'hébergeur, ajoute les variables :
+   `SMTP_USER=shoesbougie@gmail.com`, `SMTP_PASS=les16lettres` (sans espaces), `SITE_URL=https://ton-domaine`
+6. Redémarre l'application, va dans l'admin → bouton **« Envoyer un e-mail de test »**.
+
+Si l'e-mail n'arrive pas : regarde dans les spams, et vérifie que l'hébergeur autorise l'envoi vers
+`smtp.gmail.com` (sinon, utilise l'e-mail de l'hébergeur avec `SMTP_HOST` / `SMTP_PORT`).
+Si l'envoi échoue, la commande est quand même enregistrée normalement.
 
 ## Mise en ligne
 

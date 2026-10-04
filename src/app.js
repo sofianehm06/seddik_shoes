@@ -6,6 +6,7 @@ const config = require('./config');
 const { open } = require('./db');
 const { createRepo } = require('./repo');
 const { seedDemo } = require('./seed');
+const { createNotifier } = require('./notify');
 const { formatPrice, label, hashPassword } = require('./lib');
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
@@ -72,8 +73,10 @@ function createApp(options = {}) {
     next();
   });
 
-  app.use('/admin', adminRoutes({ repo, secret, uploadsDir }));
-  app.use(shopRoutes({ repo }));
+  const notifier = createNotifier({ transport: options.mailTransport });
+  if (!notifier.enabled && !options.dbFile) console.log('  Notifications e-mail désactivées (SMTP_USER / SMTP_PASS non définis).');
+  app.use('/admin', adminRoutes({ repo, secret, uploadsDir, notifier }));
+  app.use(shopRoutes({ repo, notifier }));
 
   app.use((req, res) => res.status(404).render('error', { title: 'Page introuvable', message: "Cette page n'existe pas (ou plus)." }));
   app.use((err, req, res, next) => {

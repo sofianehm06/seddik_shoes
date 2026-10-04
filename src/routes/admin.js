@@ -28,7 +28,7 @@ function parseSizes(text) {
   return sizes;
 }
 
-module.exports = function adminRoutes({ repo, secret, uploadsDir }) {
+module.exports = function adminRoutes({ repo, secret, uploadsDir, notifier }) {
   const router = express.Router();
 
   const upload = multer({
@@ -128,7 +128,22 @@ module.exports = function adminRoutes({ repo, secret, uploadsDir }) {
   });
 
   router.get('/', (req, res) => {
-    res.render('admin/dashboard', { title: 'Tableau de bord', stats: repo.stats(), orders: repo.listOrders().slice(0, 8) });
+    res.render('admin/dashboard', {
+      title: 'Tableau de bord',
+      stats: repo.stats(),
+      orders: repo.listOrders().slice(0, 8),
+      notify: { enabled: Boolean(notifier?.enabled), to: notifier?.to, result: req.query.email || null },
+    });
+  });
+
+  router.post('/test-email', async (req, res) => {
+    try {
+      await notifier.test();
+      res.redirect('/admin?email=ok');
+    } catch (err) {
+      console.error('E-mail de test échoué :', err.message);
+      res.redirect('/admin?email=erreur');
+    }
   });
 
   router.get('/a-preparer', (req, res) => {
